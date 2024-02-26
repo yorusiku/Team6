@@ -1,0 +1,33 @@
+.add-contact-product-form {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 300px;
+    background-color: white;
+}
+
+.add-contact-product-form lightning-button,
+.add-contact-product-form lightning-input,
+.add-contact-product-form lightning-combobox {
+    margin-bottom: 10px;
+}
+
+.laptop-product-row,
+.general-devices-product-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px; 
+}
+
+.laptop-product-row lightning-combobox,
+.general-devices-product-row lightning-combobox {
+    flex: 1; 
+    margin-right: 10px; 
+}
+
+.laptop-product-row lightning-input,
+.general-devices-product-row lightning-input {
+    width: 45px; 
+}

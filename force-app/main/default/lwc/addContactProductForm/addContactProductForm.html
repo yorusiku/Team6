@@ -1,0 +1,17 @@
+<template>
+    <div class="add-contact-product-form">
+        <lightning-input type="hidden" label="고객명" object-api-name="Contact" value={recordId}></lightning-input>
+        <lightning-combobox label="판매점" value={account} options={accounts} onchange={handleAccountSelection}></lightning-combobox>
+        <div class="laptop-product-row">
+            <lightning-combobox label="노트북제품" value={laptop} options={laptops}  onchange={handleLaptopSelection}></lightning-combobox>
+            <lightning-input type="number"  label="수량" value={laptopQuantity} onchange={handleLaptopQuantityCountChange}></lightning-input>
+        </div>
+        <div class="general-devices-product-row">
+            <lightning-combobox label="주변기기제품" value={generalDevice} options={generalDevices} onchange={handleGeneralDeviceSelection}></lightning-combobox>
+            <lightning-input type="number"  label="수량" value={generalDeviceQuantity} onchange={handleGeneralDeviceQuantityCountChange}></lightning-input>
+        </div>
+        <lightning-input type="datetime" label="주문날짜" value={orderDateTime} onchange={handleOrderDateTimeSelection} ></lightning-input>
+        <lightning-input type="number" label="할인율" value={discount} onchange={handleDiscountRateChange}></lightning-input>
+        <lightning-button label="주문하기" onclick={addContactProducts}></lightning-button>
+    </div>
+</template>
