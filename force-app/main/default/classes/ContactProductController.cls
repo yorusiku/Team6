@@ -1,17 +1,5 @@
-public with sharing class ContactController {
+public with sharing class ContactProductController {
     
-    /**
-    * 모든 구매유형 고객들을 불러오는 method 
-    */
-    @AuraEnabled(cacheable=true)
-    public static List<Contact> getPurchaseCustomers() {
-        return [SELECT Id, Name 
-                FROM Contact
-                WHERE Type__c = :Constants.CONTACT_TYPE_PURCHASE
-                WITH SECURITY_ENFORCED
-                ORDER BY Name];
-    }
-
     /**
     * 고객이 주문한 제품을 추가하는 method 
     */
@@ -49,8 +37,6 @@ public with sharing class ContactController {
         }
     }
 
-
-    
     /**
     * 고객주문제품 record를 List에 생성해서 return하는 method 
     */ 

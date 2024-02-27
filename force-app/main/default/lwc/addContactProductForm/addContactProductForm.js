@@ -3,7 +3,7 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getAccounts from '@salesforce/apex/AccountController.getAccounts';
 import getLaptopProducts from '@salesforce/apex/ProductController.getLaptopProducts';
 import getGeneralDeviceProducts from '@salesforce/apex/ProductController.getGeneralDeviceProducts';
-import addContactProducts from '@salesforce/apex/ContactController.addContactProducts';
+import addContactProducts from '@salesforce/apex/ContactProductController.addContactProducts';
 
 export default class AddContactProductForm extends LightningElement {
     @api recordId;
