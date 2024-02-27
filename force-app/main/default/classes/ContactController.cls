@@ -65,7 +65,7 @@ public with sharing class ContactController {
                 Contact__c = contactId,
                 Account__c = accountId,
                 Product__c = productTypeId,
-                Discount_Percent_c__c = discount,
+                Discount_Percent__c = discount,
                 Order_Date_Time__c = orderDateTime
             ));
         }

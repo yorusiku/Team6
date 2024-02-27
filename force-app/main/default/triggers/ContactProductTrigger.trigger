@@ -1,11 +1,25 @@
-// REQ-11
-trigger ContactProductTrigger on ContactProduct (before insert,before update) {
-    if (Trigger.isBefore) {
-        if(Trigger.isInsert) {
-            ContactProductTriggerHandler.BeforeInsertContactProductTriggerHandler();
+trigger ContactProductTrigger on Contact_Products__c (before insert,before update) {
+    if (Trigger.isInsert) {
+        if(Trigger.isBefore){
+            ContactProductTriggerHandler.BeforeInsertContactProductTriggerHandler(trigger.new);
+        }else if (Trigger.isAfter){
+
         }
-        if(Trigger.isUpdate){
-            ContactProductTriggerHandler.BeforeUpdateContactProductTriggerHandler();
+    }
+
+    if(Trigger.isUpdate){
+        if(Trigger.isBefore){
+            ContactProductTriggerHandler.BeforeInsertContactProductTriggerHandler(trigger.new);
+        }else if(Trigger.isAfter){
+
+        }
+    }
+
+    if(Trigger.isDelete){
+        if(Trigger.isBefore){
+
+        }else if(Trigger.isAfter){
+           
         }
     }
 }

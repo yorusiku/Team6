@@ -1,4 +1,5 @@
 public with sharing class ContactProductTriggerHandler {
+    // REQ-11
     public static void BeforeInsertContactProductTriggerHandler(List<Contact_Products__c> triggerNew) {
         List<Contact> contactProductToUpdate = new List<Contact>(); 
         Set<Id> contactIds = new Set<Id>();
@@ -6,7 +7,7 @@ public with sharing class ContactProductTriggerHandler {
         for (Contact_Products__c c : triggerNew) {
             contactIds.add(c.Contact__c);
         }
-        // Contact에서 id, 이름, 고객 유형, 첫 구매 매장, 최근 구매 매장을 조회
+        // Contact에서 고객 제품 주문과 일치하는 id, 이름, 고객 유형, 첫 구매 매장, 최근 구매 매장을 조회해서 contactList에 담아줌
         List<Contact> contactList = [SELECT Id, Name, Type__c, First_Purchase_Store__c, Latest_Purchase_Store__c
                                     FROM Contact
                                     WHERE Id IN :contactIds];
@@ -19,44 +20,54 @@ public with sharing class ContactProductTriggerHandler {
         for(Contact c : contactList) {
             Contact_Products__c cp = contactProductMap.get(c.Id);
             if(c.First_Purchase_Store__c == null && cp != null) {
+                //첫 구매상점 , 최근 구매상점 업데이트
                 c.First_Purchase_Store__c = cp.Account__c;
+                c.Latest_Purchase_Store__c = cp.Account__c;
                 contactProductToUpdate.add(c);
             } else if (cp != null) {
+                //최근 구매상점 업데이트
                 c.Latest_Purchase_Store__c = cp.Account__c;
                 contactProductToUpdate.add(c);
             }
         }
-    
+        // 구매상점 변화 발생 시 업데이트하여 넣어줌
         if(contactProductToUpdate.size() > 0) {
             update contactProductToUpdate;
         }
     }
     
-
-            // 최근 구매일
-            // 구매생기면 Type__c고객유형 -> 구매로
+     /**
+    * 판매를 만들어주는 method 
+    */
     public static void insertSales(List<Contact_Products__c> contactProduct) {
-        Set<String>OrderCode = new Set<String>();
+        Set<String> OrderCode = new Set<String>();
+        List<String> ProducListName = new List<String>(); 
         List<Sale__c> saleToInsert = new List<Sale__c>();
 
 
         for(Contact_Products__c cp : contactProduct){
             OrderCode.add(cp.Order_Code__c);
+            ProducListName.add(cp.Product__r.name);
         } 
 
-        //Integer 총값 = [SELECT ~~ WHERE Order_Code__c IN OrderCode];
-        //Integer 총노트북값 = [SELECT ~~ WHERE Order_Code__c IN OrderCode];
-        //Integer 총랩탑값 = [SELECT ~~ WHERE Order_Code__c IN OrderCode];
-        //Integer 총랩탑값 = [SELECT ~~ WHERE Order_Code__c IN OrderCode];
-        //Integer 총랩탑값 = [SELECT ~~ WHERE Order_Code__c IN OrderCode];
-        //Integer 총랩탑값 = [SELECT ~~ WHERE Order_Code__c IN OrderCode];
-        
+        for(String pd : ProducListName){
+            String ProductListName;
+        }
 
-        //for(Contact_Products__c cp : contactProduct){
-        //    Sale__c sc = new  Sale__c();
-        //    sc. ~ = cp. ~
-        //    sc. ~  
-        //}
+
+        for(Contact_Products__c cp : contactProduct){
+            AggregateResult[] TotalPriceResults = [SELECT SUM(Total_Purchase__c) totalPrice FROM Contact_Products__c
+                                                WHERE Order_Code__c = :OrderCode];
+            Integer TotalPrice = (Integer)TotalPriceResults[0].get('totalPrice');
+            Integer DiscountAmount = (TotalPrice * cp.Discount_Percent__c / 100).intValue();
+            Integer FinalPrice = TotalPrice - DiscountAmount;
+            
+            Sale__c sc = new Sale__c();
+            sc.Account__c = cp.Account__c;
+            sc.Customer__c = cp.Contact__c;
+            // 판매코드
+            
+        }
 
         //insert saleToInsert;
     }
