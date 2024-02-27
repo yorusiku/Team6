@@ -7,7 +7,7 @@ public with sharing class ContactController {
     public static List<Contact> getPurchaseCustomers() {
         return [SELECT Id, Name 
                 FROM Contact
-                WHERE Type__c = :Constants.PURCHASE
+                WHERE Type__c = :Constants.CONTACT_TYPE_PURCHASE
                 WITH SECURITY_ENFORCED
                 ORDER BY Name];
     }
