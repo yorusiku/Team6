@@ -1,15 +1,15 @@
-trigger ContactProductTrigger on Contact_Products__c (before insert,before update) {
+trigger ContactProductTrigger on Contact_Products__c (before insert,before update, after insert) {
     if (Trigger.isInsert) {
         if(Trigger.isBefore){
-            ContactProductTriggerHandler.BeforeInsertContactProductTriggerHandler(trigger.new);
+            ContactProductTriggerHandler.UpdatePurchaseStoreAndDateInContact(trigger.new);
         }else if (Trigger.isAfter){
-
+            ContactProductTriggerHandler.insertSales(trigger.new);
         }
     }
 
     if(Trigger.isUpdate){
         if(Trigger.isBefore){
-            ContactProductTriggerHandler.BeforeInsertContactProductTriggerHandler(trigger.new);
+            ContactProductTriggerHandler.UpdatePurchaseStoreAndDateInContact(trigger.new);
         }else if(Trigger.isAfter){
 
         }
