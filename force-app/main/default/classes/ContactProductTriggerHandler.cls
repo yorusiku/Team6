@@ -1,4 +1,5 @@
 public with sharing class ContactProductTriggerHandler {
+    public static boolean firstRun = true;
     // REQ-11
     public static void UpdatePurchaseStoreAndDateInContact(List<Contact_Products__c> triggerNew) {
         List<Contact> contactProductToUpdate = new List<Contact>(); 
@@ -49,57 +50,84 @@ public with sharing class ContactProductTriggerHandler {
     /**
     * 판매를 만들어주는 method 
     */
-    public static void insertSales(List<Contact_Products__c> contactProduct) {
-        Set<String> OrderCode = new Set<String>();
+    public static void insertAndUpdateSale(List<Contact_Products__c> contactProduct) {
         List<String> ProductNameList = new List<String>(); 
         String ProductName = '';
         List<Sale__c> saleToInsert = new List<Sale__c>();
+        List<Sale__c> saleToUpdate = new List<Sale__c>();
+        Set<String> SalesCode = ContactProductController.getSalesCode(contactProduct);
+        System.debug('insertAndUpdateSale에서의 SalesCode:' + SalesCode);
 
-
+  
+        Set<String> OrderCode = new Set<String>();
         for(Contact_Products__c cp : contactProduct){
             OrderCode.add(cp.Order_Code__c);
-            ProductNameList.add(cp.Product__r.name);
-            System.debug('ProductNameList:' + ProductNameList);
+            ProductNameList.add(cp.Product_Name_Text__c);
         } 
-
+    
         for(String pd : ProductNameList){
-            ProductName = pd + '\n';
-            System.debug('productName:' + productName);
+                ProductName += pd + '\n';
         }
-
-
+        
         AggregateResult[] TotalPriceResults = [SELECT SUM(Total_Purchase__c) totalPrice 
-                                                FROM Contact_Products__c 
-                                                WHERE Order_Code__c = :OrderCode];
-        Decimal TotalPrice = (Decimal)TotalPriceResults[0].get('totalPrice'); // Decimal로 캐스팅
+                                                        FROM Contact_Products__c 
+                                                        WHERE Order_Code__c = :OrderCode];
+        Decimal TotalPrice = (Decimal)TotalPriceResults[0].get('totalPrice'); 
         
+        if(SalesCode.isEmpty()){
+            System.debug('SalesCode가 비워져있을 떄 ');
+            for(Contact_Products__c cp : [SELECT Account__c, Contact__c, Order_Date_Time__c, Discount_Percent__c, Order_Code__c
+                                              FROM Contact_Products__c 
+                                              WHERE Order_Code__c = :OrderCode]){
+                Decimal DiscountAmount = (TotalPrice * cp.Discount_Percent__c / 100); 
+                Decimal FinalPrice = TotalPrice - DiscountAmount; 
+                Sale__c sc = new Sale__c();
+                sc.Account__c = cp.Account__c;
+                sc.Customer__c = cp.Contact__c;
+                sc.Date_of_sale__c = cp.Order_Date_Time__c;
+                sc.List_of_Purchased_Items__c = ProductName;
+                sc.Total_Price__c = TotalPrice.intValue();
+                sc.Discount_Value__c = DiscountAmount.intValue();
+                sc.Discount_Percent__c = cp.Discount_Percent__c;
+                sc.Final_Price__c = FinalPrice.intValue();
+                sc.Sales_Code__c = 'S'+ cp.Order_Code__c;
+                saleToInsert.add(sc);
+                System.debug('제품 1개 일떄 sales값::' + sc);
+            }     
+        }else if(!SalesCode.isEmpty()){
+            System.debug('SalesCode가 채워져있을 떄 ');
+            String AdditionalProductName = '';
+            Set<Id> SaleId = ContactProductController.getSaleId(contactProduct);
+            TotalPrice = (Decimal)TotalPriceResults[0].get('totalPrice'); 
+            for(Contact_Products__c cp : contactProduct){
+                ProductNameList.add(cp.Product_Name_Text__c);
+            } 
         
-        for(Contact_Products__c cp : [SELECT Account__c, Contact__c, Order_Date_Time__c, Discount_Percent__c
-                                      FROM Contact_Products__c 
-                                      WHERE Order_Code__c = :OrderCode
-                                      LIMIT 1]){
-            Decimal DiscountAmount = (TotalPrice * cp.Discount_Percent__c / 100); 
-            Decimal FinalPrice = TotalPrice - DiscountAmount; // 최종 가격 계산
+            for(String pd : ProductNameList){
+                AdditionalProductName += pd + '\n';
+            }
 
-            Sale__c sc = new Sale__c();
-            sc.Account__c = cp.Account__c;
-            sc.Customer__c = cp.Contact__c;
-            sc.Date_of_sale__c = cp.Order_Date_Time__c;
-            sc.List_of_Purchased_Items__c = ProductName;
-            sc.Total_Price__c = TotalPrice.intValue();
-            sc.Discount_Value__c = DiscountAmount.intValue();
-            sc.Discount_Percent__c = cp.Discount_Percent__c;
-            sc.Final_Price__c = FinalPrice.intValue();
-            // 판매담당자 sc.Account__r.
-            // 판매코드
-            saleToInsert.add(sc);
-            System.debug(sc);
+            for(Sale__c scToUpdate : [SELECT Id, List_of_Purchased_Items__c, Total_Price__c, Discount_Value__c, Final_Price__c, Discount_Percent__c
+                                      FROM Sale__C 
+                                      WHERE Id IN : SaleId]){
+                Decimal DiscountAmount = (TotalPrice * scToUpdate.Discount_Percent__c / 100); 
+                Decimal FinalPrice = TotalPrice - DiscountAmount;
+                scToUpdate.Total_Price__c = TotalPrice.intValue();
+                scToUpdate.Discount_Value__c = DiscountAmount.intValue();
+                scToUpdate.Final_Price__c = FinalPrice;
+                scToUpdate.List_of_Purchased_Items__c += AdditionalProductName;  
+                saleToUpdate.add(scToUpdate);
+            }
         }
 
-        //insert saleToInsert;
         if (!saleToInsert.isEmpty()) {
             System.debug(saleToInsert);
             insert saleToInsert;
+        }
+
+        if (!saleToUpdate.isEmpty()) {
+            System.debug(saleToUpdate);
+            update saleToUpdate;
         }
     }
 }

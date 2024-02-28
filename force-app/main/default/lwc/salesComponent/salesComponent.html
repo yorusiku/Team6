@@ -1,0 +1,39 @@
+<!-- parentComponent.html -->
+<template>
+    <lightning-card class="add-contact-product-form">
+        <lightning-input type="hidden" label="고객명" object-api-name="Contact" value={recordId}></lightning-input>
+        <lightning-combobox label="판매점" value={account} options={accounts} onchange={handleAccountSelection}></lightning-combobox>
+
+        <!-- 노트북 로우들 -->
+        <template for:each={laptopRows} for:item="laptopRow" for:index="laptopIndex">
+                <lightning-layout key={laptopRow.id}>
+                        <lightning-layout horizontal-align="spread" multiple-rows>
+                            <lightning-layout-item>
+                                <lightning-combobox label="노트북제품" value={laptopRow.laptop} options={laptops} onchange={handleLaptopSelection}></lightning-combobox>
+                                <lightning-input type="number" label="수량" value={laptopRow.quantity} onchange={handleLaptopQuantityCountChange}></lightning-input>
+                                <lightning-button label="노트북 로우 추가" onclick={addRow}></lightning-button>
+                            </lightning-layout-item>
+                        </lightning-layout>
+                </lightning-layout>
+        </template>
+
+        <!-- 노트북 로우 추가 버튼 -->
+        <lightning-button class="slds-m-left_x-small" label="노트북 로우 추가" onclick={addNewLaptopRow}></lightning-button>
+
+        <!-- 주변기기 로우들 -->
+        <template for:each={generalDeviceRows} for:item="deviceRow" for:index="deviceIndex">
+            <div key={deviceRow.id} class="general-devices-product-row">
+                <lightning-combobox label="주변기기제품" value={deviceRow.generalDevice} options={generalDevices} onchange={handleGeneralDeviceSelection}></lightning-combobox>
+                <lightning-input type="number" label="수량" value={deviceRow.quantity} onchange={handleGeneralDeviceQuantityCountChange}></lightning-input>
+                <lightning-button class="slds-m-left_x-small" label="주변기기 로우 추가" onclick={addNewGeneralDeviceRow}></lightning-button>
+            </div>
+        </template>
+
+        <!-- 주변기기 로우 추가 버튼 -->
+        <lightning-button class="slds-m-left_x-small" label="주변기기 로우 추가" onclick={addNewGeneralDeviceRow}></lightning-button>
+  
+        <lightning-input type="datetime" label="주문날짜" value={orderDateTime} onchange={handleOrderDateTimeSelection}></lightning-input>
+        <lightning-input type="number" label="할인율" value={discount} onchange={handleDiscountRateChange}></lightning-input>
+        <lightning-button label="주문하기" onclick={addContactProducts}></lightning-button>
+    </lightning-card>
+</template>

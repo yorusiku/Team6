@@ -57,4 +57,69 @@ public with sharing class ContactProductController {
         }
         return contactProductsToInsert;
     }
+
+    /**
+    * 고객주문제품 record의 size를 count하는 method 
+    */ 
+    public static Integer countOrderCodeSize(List<Contact_Products__c> contactProduct){
+        Integer OrderCodeSize;
+
+        Set<String> OrderCode = new Set<String>();
+        for(Contact_Products__c cp : contactProduct){
+            OrderCode.add(cp.Order_Code__c);
+        } 
+        List<AggregateResult> OrderCodeCount = [SELECT COUNT(Order_Code__c) 
+                                                  FROM Contact_Products__c 
+                                                  WHERE Order_Code__c IN :OrderCode]; 
+        
+        if (!OrderCodeCount.isEmpty()) {
+            OrderCodeSize = Integer.valueOf(OrderCodeCount[0].get('expr0'));
+        }
+
+        return OrderCodeSize;
+    }
+
+    // 고객주문제품코드에서 판매코드를 return하는 method 
+    public static Set<String> getSalesCode(List<Contact_Products__c> contactProduct){
+        Set<String> salesCode = new Set<String>(); 
+        Set<String> OrderCode = new Set<String>();
+        for(Contact_Products__c cp : contactProduct){
+            OrderCode.add('S'+ cp.Order_Code__c);
+        } 
+
+        System.debug('OrderCode::'+ OrderCode);
+        List<sale__c> saleList = [SELECT Id , name, Sales_Code__c
+                               FROM sale__c
+                               WHERE Sales_Code__c IN : OrderCode];
+        for(sale__c sc : saleList){
+            salesCode.add(sc.Sales_Code__c);
+            System.debug('제품주문의 세일즈코드::' + sc.Sales_Code__c);
+        }
+
+        if (salesCode.isEmpty()) {
+            System.debug('Sales Code는 null');
+        }
+        
+        System.debug('getSalesCode 에서의::' + salesCode);
+        return salesCode;
+    }
+
+    // 고객주문제품코드에서 Sale의 Id를 return하는 method 
+    public static Set<Id> getSaleId(List<Contact_Products__c> contactProduct){
+        Set<Id> salesId = new Set<Id>(); 
+        String salesCode; 
+        Set<String> OrderCode = new Set<String>();
+        for(Contact_Products__c cp : contactProduct){
+            OrderCode.add('S'+ cp.Order_Code__c);
+        }
+        System.debug('getSaleId의 OrderCode' + OrderCode);
+        
+        for(sale__c sc : [SELECT Id, name, Sales_Code__c
+        FROM sale__c
+        WHERE Sales_Code__c IN : OrderCode]){
+            salesId.add(sc.Id);
+            System.debug('제품주문의 salesId::' + salesId);
+        }     
+        return salesId;
+    }
 }

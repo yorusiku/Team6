@@ -3,7 +3,7 @@ trigger ContactProductTrigger on Contact_Products__c (before insert,before updat
         if(Trigger.isBefore){
             ContactProductTriggerHandler.UpdatePurchaseStoreAndDateInContact(trigger.new);
         }else if (Trigger.isAfter){
-            ContactProductTriggerHandler.insertSales(trigger.new);
+            ContactProductTriggerHandler.insertAndUpdateSale(trigger.new);
         }
     }
 
