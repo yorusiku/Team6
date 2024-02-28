@@ -28,6 +28,7 @@ public with sharing class ContactProductTriggerHandler {
                     // Order_Date_Time__c (DateTime 타입)에서 Date 객체로 변환
                     DateTime dtValue = cp.Order_Date_Time__c; // DateTime 값을 추출
                     Date dateValue = dtValue.date(); // DateTime에서 Date로 변환
+                    c.Latest_Purchase_Date__c = dateValue; // 최근 구매일 수정
                     contactProductToUpdate.add(c);
                 } else if (cp != null) {
                     //최근 구매상점 업데이트
@@ -35,6 +36,7 @@ public with sharing class ContactProductTriggerHandler {
                     // Order_Date_Time__c (DateTime 타입)에서 Date 객체로 변환
                     DateTime dtValue = cp.Order_Date_Time__c; // DateTime 값을 추출
                     Date dateValue = dtValue.date(); // DateTime에서 Date로 변환
+                    c.Latest_Purchase_Date__c = dateValue; // 최근 구매일 수정
                     contactProductToUpdate.add(c);
                 }
             }
