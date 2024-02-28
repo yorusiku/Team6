@@ -8,7 +8,7 @@ public with sharing class ContactProductTriggerHandler {
             contactIds.add(c.Contact__c);
         }
         // Contact에서 고객 제품 주문과 일치하는 id, 이름, 고객 유형, 첫 구매 매장, 최근 구매 매장을 조회해서 contactList에 담아줌
-        List<Contact> contactList = [SELECT Id, Name, Type__c, First_Purchase_Store__c, Latest_Purchase_Store__c, Latest_Purchase_Date__c
+        List<Contact> contactList = [SELECT Id, Name, Type__c, First_Purchase_Store__c, Latest_Purchase_Store__c
                                     FROM Contact
                                     WHERE Id IN :contactIds];
     
@@ -20,15 +20,13 @@ public with sharing class ContactProductTriggerHandler {
         for(Contact c : contactList) {
             Contact_Products__c cp = contactProductMap.get(c.Id);
             if(c.First_Purchase_Store__c == null && cp != null) {
-                //첫 구매상점 , 최근 구매상점, 구매 일 업데이트
+                //첫 구매상점 , 최근 구매상점 업데이트
                 c.First_Purchase_Store__c = cp.Account__c;
                 c.Latest_Purchase_Store__c = cp.Account__c;
-                c.Latest_Purchase_Date__c = cp.Order_Date_Time__c;
                 contactProductToUpdate.add(c);
             } else if (cp != null) {
-                //최근 구매상점, 구매 일 업데이트
+                //최근 구매상점 업데이트
                 c.Latest_Purchase_Store__c = cp.Account__c;
-                c.Latest_Purchase_Date__c = cp.Order_Date_Time__c;
                 contactProductToUpdate.add(c);
             }
         }
