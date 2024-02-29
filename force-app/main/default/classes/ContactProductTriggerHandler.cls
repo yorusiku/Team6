@@ -153,4 +153,34 @@ public with sharing class ContactProductTriggerHandler {
             update saleToUpdate;
         }
     }
+    
+        public static void UpdateAccountSalesInformation(List<Contact_Products__c> contactProducts) {
+            // Account ID 수집
+            Set<Id> accountIds = new Set<Id>();
+            for (Contact_Products__c cp : contactProducts) {
+                accountIds.add(cp.Account__c);
+            }
+    
+            // 필요한 Account 레코드 조회
+            Map<Id, Account> accountMap = new Map<Id, Account>([
+                SELECT Id, Total_Sales__c
+                FROM Account
+                WHERE Id IN :accountIds
+            ]);
+    
+            // 각 Account의 총 판매액 업데이트
+            for (Contact_Products__c cp : contactProducts) {
+                if (accountMap.containsKey(cp.Account__c)) {
+                    Account acc = accountMap.get(cp.Account__c);
+                    if (acc.Total_Sales__c == null) {
+                        acc.Total_Sales__c = cp.Total_Purchase__c;
+                    } else {
+                        acc.Total_Sales__c += cp.Total_Purchase__c;
+                    }
+                }
+            }
+    
+            // 업데이트된 Account 레코드 저장
+            update accountMap.values();
+        }
 }
