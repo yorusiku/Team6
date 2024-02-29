@@ -122,4 +122,107 @@ public with sharing class ContactProductController {
         }     
         return salesId;
     }
+
+    // 고객주문제품에서 고객의 총 구매금액을 계산하는 메서드
+    public static Integer getCustomerTotalPurchase(List<Contact> contactList){
+        Integer totalCustomerPurchase = 0;
+        Set<Id> customerId = getCustomerId(contactList);
+        Date dueDate = getCustomerDueDate(contactList);
+        Date lastesPurcaseDate = getCustomerLastesPurcaseDate(contactList);
+
+        AggregateResult[] totalPriceResults = [SELECT SUM(Total_Purchase__c) totalPrice 
+                                            FROM Contact_Products__c 
+                                            WHERE Id IN :customerId
+                                            AND Order_Date_Time__c > = :dueDate 
+                                            AND Order_Date_Time__c < = :lastesPurcaseDate];
+        System.debug('고객 TotalPriceResults::' + totalPriceResults);
+        Decimal totalPrice = (Decimal)totalPriceResults[0].get('totalPrice'); 
+        System.debug('고객 TotalPrice::' + totalPrice);
+
+        return totalCustomerPurchase = totalPrice.intValue();
+    }
+
+    // 고객주문제품에서 고객의 총 노트북 구매 금액을 계산하는 메서드
+    public static Integer getCustomerTotalNotebookPurchase(List<Contact> contactList){
+        Integer totalNotebookPurchasePurchase = 0;
+        Set<Id> customerId = getCustomerId(contactList);
+        Date dueDate = getCustomerDueDate(contactList);
+        Date lastesPurcaseDate = getCustomerLastesPurcaseDate(contactList);
+
+        AggregateResult[] totalPriceResults = [SELECT SUM(Total_Purchase_of_Laptops__c) totalNoteBookPrice 
+                                            FROM Contact_Products__c 
+                                            WHERE Id IN :customerId
+                                            AND Order_Date_Time__c > = :dueDate 
+                                            AND Order_Date_Time__c < = :lastesPurcaseDate];
+        System.debug('고객 TotalNoteBookPriceResults::' + totalPriceResults);
+        Decimal totalNoteBookPrice = (Decimal)totalPriceResults[0].get('totalNoteBookPrice'); 
+
+        
+        return totalNotebookPurchasePurchase = totalNoteBookPrice.intValue();
+    }
+
+    // 고객주문제품에서 고객의 총 주변기기 구매 금액을 계산하는 메서드
+    public static Integer getCustomerTotalGeneralDevicePurchase(List<Contact> contactList){
+        Integer totalGeneralDevicePurchase = 0;
+        Set<Id> customerId = getCustomerId(contactList);
+        Date dueDate = getCustomerDueDate(contactList);
+        Date lastesPurcaseDate = getCustomerLastesPurcaseDate(contactList);
+
+        AggregateResult[] totalPriceResults = [SELECT SUM(Total_Purchase_of_General_Devices__c) totalGeneralDevicePrice 
+                                                FROM Contact_Products__c 
+                                                WHERE Id IN :customerId
+                                                AND Order_Date_Time__c > = :dueDate 
+                                                AND Order_Date_Time__c < = :lastesPurcaseDate];
+        System.debug('고객 TotalGeneralDevicePriceResults::' + TotalPriceResults);
+        Decimal totalNoteBookPrice = (Decimal)totalPriceResults[0].get('totalGeneralDevicePrice'); 
+
+        return totalGeneralDevicePurchase;
+    }
+
+
+    // 고객주문제품에서 고객의 총 구매제품을 담아주는 메서드
+    public static String getCustomerPurchaseItemList(List<Contact> contactList){
+        List<String> ProductNameList = new List<String>();
+        String ProductName = '';
+        Set<Id> customerId = getCustomerId(contactList);
+        Date dueDate = getCustomerDueDate(contactList);
+        Date lastesPurcaseDate = getCustomerLastesPurcaseDate(contactList);
+
+        for(Contact_Products__c cp : [SELECT Id, name, Product_Name_Text__c
+                                      FROM Contact_Products__c 
+                                      WHERE Id IN :customerId
+                                      AND Order_Date_Time__c > = :dueDate 
+                                      AND Order_Date_Time__c < = :lastesPurcaseDate]){
+            ProductName += cp.Product_Name_Text__c + '\n';
+        }
+
+        return ProductName;
+    }
+
+    // 고객의 아이디를 담아주는 메서드
+    public static Set<Id> getCustomerId(List<Contact> contactList){
+        Set<Id> customerId = new Set<Id>();
+        for(Contact ct : contactList){
+            customerId.add(ct.Id);
+        }
+        return customerId;
+    }
+
+    // 고객의 최근 구매일로 부터 90일 전을 담아주는 메서드
+    public static Date getCustomerDueDate(List<Contact> contactList){
+        Date DueDate;
+        for(Contact ct : contactList){
+            DueDate = ct.Due_Date_90Days__c;
+        }
+        return DueDate;
+    }
+
+    // 고객의 최근 구매일을  관리 시점을 담아주는 메서드
+    public static Date getCustomerLastesPurcaseDate(List<Contact> contactList){
+        Date LastesPurcaseDate;
+        for(Contact ct : contactList){
+            LastesPurcaseDate = ct.Latest_Purchase_Date__c;
+        }
+        return LastesPurcaseDate;
+    }
 }

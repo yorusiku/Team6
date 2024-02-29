@@ -33,8 +33,7 @@ public with sharing class VOCTriggerHandler {
                 accountToUpdate.Total_VOC_Count__c = accountVOCCount;
                 accountsToUpdate.add(accountToUpdate);
             }
-        }
-
+        } 
 
         // Contact 및 Account 업데이트
         if (!contactsToUpdate.isEmpty()) {
