@@ -4,7 +4,7 @@ trigger ContactProductTrigger on Contact_Products__c (before insert,before updat
             ContactProductTriggerHandler.UpdatePurchaseStoreAndDateInContact(trigger.new);
         }else if (Trigger.isAfter){
             ContactProductTriggerHandler.insertAndUpdateSale(trigger.new);
-            // ContactProductTriggerHandler.UpdateAccountSalesInformation(trigger.new);
+            ContactProductTriggerHandler.UpdateAccountSalesInformation(trigger.new);
         }
     }
 
@@ -12,7 +12,7 @@ trigger ContactProductTrigger on Contact_Products__c (before insert,before updat
         if(Trigger.isBefore){
             ContactProductTriggerHandler.UpdatePurchaseStoreAndDateInContact(trigger.new);
         }else if(Trigger.isAfter){
-            // ContactProductTriggerHandler.UpdateAccountSalesInformation(trigger.new);
+            ContactProductTriggerHandler.UpdateAccountSalesInformation(trigger.new);
         }
     }
 

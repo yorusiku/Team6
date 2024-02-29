@@ -24,7 +24,7 @@ export default class SalesComponent extends LightningElement {
       @track discount = 0;
       @track recordId;
       @track account;
-      @track products=[];
+      @track products = [];
     //   @track accounts = ['', '', ''];
       keyIndex = 0;
         @track laptopRows = [
@@ -42,15 +42,7 @@ export default class SalesComponent extends LightningElement {
         ];
 
 
-    //   addRow(event) {
-    //     const key = event.target.accessKey;
-    //     const index = event.target.id;
-    //     if (key === 'laptop') {
-    //         this.addNewLaptopRow(index);
-    //     } else if (key === 'generalDevice') {
-    //         this.addNewGeneralDeviceRow(index);
-    //     }
-    // }
+
   
       // 페이지 로드 시 contactId 값에 값을 recordId 할당.
       connectedCallback() {
@@ -143,8 +135,6 @@ export default class SalesComponent extends LightningElement {
 
 
       addToProducts(type, productId, quantity) {
-        addToProducts('laptop', this.laptop, this.laptopQuantity);
-        addToProducts('generalDevice', this.generalDevice, this.generalDeviceQuantity);
         if (productId && quantity) {
             this.products.push({
                 type: type,
@@ -152,8 +142,7 @@ export default class SalesComponent extends LightningElement {
                 quantity: quantity
             });
         }
-    
-    }
+      }
 
 
       // 선택한 판매점의 값을 가져옴 
@@ -164,24 +153,26 @@ export default class SalesComponent extends LightningElement {
       // 선택한 노트북 제품 값을 가져옴 
       handleLaptopSelection(event) {
           this.laptop = event.detail.value;
+          this.addToProducts('laptop', this.laptop, this.laptopQuantity);
       }
 
     // 선택한 노트북 수량 값을 가져옴 
         handleLaptopQuantityCountChange(event) {
             this.laptopQuantity = parseInt(event.target.value, 10);
+            this.addToProducts('laptop', this.laptop, this.laptopQuantity);
         }
     
 
       // 선택한 주변기기 제품 값을 가져옴 
       handleGeneralDeviceSelection(event){
           this.generalDevice = event.detail.value;
-
-      }
+          this.addToProducts('generalDevice', this.generalDevice, this.generalDeviceQuantity);
+        }
 
         // 선택한 주변기기 수량 값을 가져옴 
         handleGeneralDeviceQuantityCountChange(event) {
             this.generalDeviceQuantity = parseInt(event.target.value, 10);
-
+            this.addToProducts('generalDevice', this.generalDevice, this.generalDeviceQuantity);
         }
 
       // 선택한 주문 날짜 값을 가져옴 
@@ -197,7 +188,78 @@ export default class SalesComponent extends LightningElement {
   
       // 고객 제품 주문 생성 
       addContactProducts() {
-    //    // 노트북 정보 추가
+        const uniqueProducts = this.products.reduce((acc, current) => {
+            const isDuplicate = acc.some(item => item.type === current.type && item.productId === current.productId);
+            if (!isDuplicate) {
+                return acc.concat(Array.from({ length: current.quantity }, () => ({ ...current })));
+            } else {
+                return acc;
+            }
+        }, []);
+    
+        // 주문 처리
+        if (uniqueProducts.length > 0) {
+            const promises = uniqueProducts.map(product => {
+                return addContactProducts({
+                    contactId: this.contactId,
+                    accountId: this.account,
+                    orderDateTime: this.orderDateTime,
+                    discount: this.discount,
+                    laptopId: product.type === 'laptop' ? product.productId : '',
+                    laptopQuantity: product.type === 'laptop' ? 1 : 0,  
+                    generalDeviceId: product.type === 'generalDevice' ? product.productId : '',
+                    generalDeviceQuantity: product.type === 'generalDevice' ? 1 : 0  
+                });
+            });
+    
+            // 모든 주문을 처리하는 Promise
+            Promise.all(promises)
+                .then(() => {
+                    // 주문이 성공적으로 완료된 경우
+                    this.dispatchEvent(
+                        new ShowToastEvent({
+                            title: 'Success',
+                            message: '주문이 성공적으로 접수되었습니다. 감사합니다 :)',
+                            variant: 'success'
+                        })
+                    );
+                    this.products = [];
+                })
+                .catch(error => {
+                    // 주문 생성 중 오류가 발생한 경우
+                    console.error('Error creating records:', error);
+                    this.dispatchEvent(
+                        new ShowToastEvent({
+                            title: 'Error',
+                            message: error.body.message,
+                            variant: 'error'
+                        })
+                    );
+                });
+        } else {
+            // 주문할 제품이 없는 경우
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Warning',
+                    message: '주문할 제품을 선택하세요.',
+                    variant: 'warning'
+                })
+            );
+        }
+    }
+    
+    
+  }
+  
+
+
+
+
+
+
+
+
+      //    // 노트북 정보 추가
     //    this.laptop.forEach(row => {
     //     if (row.laptop && row.laptopQuantity) {
     //         products.push({
@@ -221,59 +283,13 @@ export default class SalesComponent extends LightningElement {
     //     }
     //     console.log(products[0])
     // });
-        
-        // 주문 처리
-        console.log(products[0],products[1],products[2])
 
-        if (products.length > 0) {
-            // 주변기기와 노트북에 대한 정보를 모두 반복하여 처리
-            const promises = products.map(product  => {
-                return addContactProducts({
-                    contactId: this.contactId,
-                    accountId: this.account,
-                    orderDateTime: this.orderDateTime,
-                    discount: this.discount,
-
-                    laptopId: products.type === 'laptop' ? product.productId : '',
-                    laptopQuantity: products.type === 'laptop' ? product.quantity : 0, 
-                    generalDeviceId: products.type === 'device' ? product.productId : '',
-                    generalDeviceQuantity: products.type === 'device' ? product.quantity : 0
-                });
-            });
-        
-            // 모든 주문을 처리하는 Promise
-            Promise.all(promises)
-                .then(() => {
-                    // 주문이 성공적으로 완료된 경우
-                    this.dispatchEvent(
-                        new ShowToastEvent({
-                            title: 'Success',
-                            message: '주문이 성공적으로 접수되었습니다. 감사합니다 :)',
-                            variant: 'success'
-                        })
-                    );
-                })
-                .catch(error => {
-                    // 주문 생성 중 오류가 발생한 경우
-                    console.error('Error creating records:', error);
-                    this.dispatchEvent(
-                        new ShowToastEvent({
-                            title: 'Error',
-                            message: error.body.message,
-                            variant: 'error'
-                        })
-                    );
-                });
-        } else {
-            // 주문할 제품이 없는 경우
-            this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'Warning',
-                    message: '주문할 제품을 선택하세요.',
-                    variant: 'warning'
-                })
-            );
-        }
-        
-    }
-  }
+        //   addRow(event) {
+    //     const key = event.target.accessKey;
+    //     const index = event.target.id;
+    //     if (key === 'laptop') {
+    //         this.addNewLaptopRow(index);
+    //     } else if (key === 'generalDevice') {
+    //         this.addNewGeneralDeviceRow(index);
+    //     }
+    // }
