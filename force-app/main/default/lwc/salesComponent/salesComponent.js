@@ -169,7 +169,6 @@ export default class SalesComponent extends LightningElement {
     // 선택한 노트북 수량 값을 가져옴 
         handleLaptopQuantityCountChange(event) {
             this.laptopQuantity = parseInt(event.target.value, 10);
-
         }
     
 
@@ -198,34 +197,30 @@ export default class SalesComponent extends LightningElement {
   
       // 고객 제품 주문 생성 
       addContactProducts() {
+    //    // 노트북 정보 추가
+    //    this.laptop.forEach(row => {
+    //     if (row.laptop && row.laptopQuantity) {
+    //         products.push({
+    //             type: 'laptop', 
+    //             productId: row.laptop, 
+    //             quantity: row.laptopQuantity, 
+    //         });
+    //     }
+    //     console.log(products[0])
 
+    // });
     
-    
-       // 노트북 정보 추가
-       
-       this.laptop.forEach(row => {
-        if (row.laptop && row.laptopQuantity) {
-            products.push({
-                type: 'laptop', 
-                productId: row.laptop, 
-                quantity: row.laptopQuantity, 
-            });
-        }
-        console.log(products[0])
-
-    });
-    
-    // 주변기기 정보 추가
-    this.generalDevice.forEach(row => {
-        if (row.generalDevice && row.generalDeviceQuantity) {
-            products.push({
-                type: 'device', 
-                productId: row.generalDevice, 
-                quantity: row.generalDeviceQuantity, 
-            });
-        }
-        console.log(products[0])
-    });
+    // // 주변기기 정보 추가
+    // this.generalDevice.forEach(row => {
+    //     if (row.generalDevice && row.generalDeviceQuantity) {
+    //         products.push({
+    //             type: 'device', 
+    //             productId: row.generalDevice, 
+    //             quantity: row.generalDeviceQuantity, 
+    //         });
+    //     }
+    //     console.log(products[0])
+    // });
         
         // 주문 처리
         console.log(products[0],products[1],products[2])
