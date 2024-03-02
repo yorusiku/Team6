@@ -10,7 +10,8 @@ public class Constants {
     //ContactController 상수
     public static final String CONTACT_TYPE_COUNSELING = 'Counseling';
     public static final String CONTACT_TYPE_PURCHASE = 'Purchase'; 
-    public static final Id CustomerRecordTypeId = Schema.SObjectType.Contact.getRecordTypeInfosByName().get('Customer').getRecordTypeId();
+    public static final Id CUSTOMER_RECORD_TYPE_ID = Schema.SObjectType.Contact.getRecordTypeInfosByName().get('Customer').getRecordTypeId();
+    public static final Id STAFF_RECORD_TYPE_ID = Schema.SObjectType.Contact.getRecordTypeInfosByName().get('Staff').getRecordTypeId();
 
     //ContactTierBatch 상수
     public static final String A_TIER = 'A Tier';

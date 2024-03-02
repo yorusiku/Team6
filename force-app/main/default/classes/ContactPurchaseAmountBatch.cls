@@ -4,7 +4,7 @@
 public with sharing class ContactPurchaseAmountBatch implements Database.Batchable<sObject> {
     public Database.QueryLocator start(Database.BatchableContext bc){
         String contactType = Constants.CONTACT_TYPE_PURCHASE;
-        String query = 'SELECT Id, Name, Customer_Tier__c, Purchase_In_Recent_90Days__c, Total_Purchase_Amount__c, Total_Purchase_of_General_Devices__c, Total_Purchase_of_Laptops__c, List_of_purchased_items__c, Due_Date_90Days__c, Latest_Purchase_Date__c FROM Contact WHERE RecordTypeId = \'' + Constants.CustomerRecordTypeId + '\'';
+        String query = 'SELECT Id, Name, Customer_Tier__c, Purchase_In_Recent_90Days__c, Total_Purchase_Amount__c, Total_Purchase_of_General_Devices__c, Total_Purchase_of_Laptops__c, List_of_purchased_items__c, Due_Date_90Days__c, Latest_Purchase_Date__c FROM Contact WHERE RecordTypeId = \'' + Constants.CUSTOMER_RECORD_TYPE_ID + '\'';
         return Database.getQueryLocator(query);
     }
     

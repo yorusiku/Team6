@@ -8,7 +8,7 @@ public with sharing class ContactTierBatch implements Database.Batchable<sObject
     */
     public Database.QueryLocator start(Database.BatchableContext bc){
         String contactType = Constants.CONTACT_TYPE_PURCHASE;
-        String query = 'SELECT Id, Name, Customer_Tier__c, Purchase_In_Recent_90Days__c, Total_Purchase_Amount__c FROM Contact WHERE RecordTypeId = \'' + Constants.CustomerRecordTypeId + '\'';
+        String query = 'SELECT Id, Name, Customer_Tier__c, Purchase_In_Recent_90Days__c, Total_Purchase_Amount__c FROM Contact WHERE RecordTypeId = \'' + Constants.CUSTOMER_RECORD_TYPE_ID + '\'';
         return Database.getQueryLocator(query);
     }
     
@@ -38,7 +38,7 @@ public with sharing class ContactTierBatch implements Database.Batchable<sObject
                 con.Customer_Tier__c = B.Id;
                 contactListToUpdate.add(con);
                 // 고객의 총 구매 금액이 C등급의 최소금액인 1만원 이상 최대금액인 199만원 이하일 경우
-                }else if (con.Total_Purchase_Amount__c > C.Minimum_Purchase__c && con.Total_Purchase_Amount__c <= C.Maximum_Purchase__c ){
+                }else if (con.Total_Purchase_Amount__c >= C.Minimum_Purchase__c && con.Total_Purchase_Amount__c <= C.Maximum_Purchase__c ){
                     con.Customer_Tier__c = C.Id;
                     contactListToUpdate.add(con);
                 }else{
