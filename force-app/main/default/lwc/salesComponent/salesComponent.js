@@ -76,7 +76,7 @@ export default class SalesComponent extends LightningElement {
         this.laptopRows.push({ id: newRowId });
         this.updateProduct('laptop', '', 1);
     }
-    
+
     addNewGeneralDeviceRow(index) {
         const newRowId = this.generateId();
         this.generalDeviceRows.push({ id: newRowId });
@@ -250,35 +250,48 @@ export default class SalesComponent extends LightningElement {
     
     
     updateProduct(type, productId, quantity) {
-        const newProductId = productId
-        const existingProductIndex = this.products.findIndex(item => item.productId === productId && item.type === type);
+        const existingProductIndex = this.products.findIndex(item => productId === item.productId);
     
         if (existingProductIndex !== -1) {
             // 이미 존재하면 업데이트
-            this.products[existingProductIndex].quantity = quantity;
+            if (this.products[existingProductIndex].quantity) {
+                this.products[existingProductIndex].quantity = quantity;
+            } else if (this.products[existingProductIndex].productId !== productId) {
+                this.products[existingProductIndex].productId = productId;
+            }
         } else {
             // 존재하지 않으면 추가
-            const selectedProductIndex = this.products.findIndex(item => item.productId === productId);
+            const selectedProductIndex = this.products.findIndex(item => item.productId === productId && item.type === type);
     
             if (selectedProductIndex !== -1) {
                 // 이미 선택된 경우 기존 제품 업데이트
-                if(this.products[selectedProductIndex].productId !== productId) {
-                    this.products[selectedProductIndex].productId = newProductId
+                if (this.products[selectedProductIndex].productId !== productId || this.products[selectedProductIndex].quantity) {
+                    this.products[selectedProductIndex].productId = productId;
+                    this.products[selectedProductIndex].quantity = quantity;
                 }
-                this.products[selectedProductIndex].quantity = quantity;
-
             } else {
                 // 새로운 제품 추가
-                this.products.push({
-                    type: type,
-                    productId: productId,
-                    quantity: quantity,
-                });
+                if (productId) {
+                    this.products.push({
+                        type: type,
+                        productId: productId,
+                        quantity: quantity,
+                    });
+                }
             }
         }
-        console.log(JSON.parse(JSON.stringify(this.products))) 
+    
+        // 배열에서 기존 제품 제거 후 다시 추가
+        if (existingProductIndex !== -1 && this.products[existingProductIndex].productId !== productId) {
+            const removedProduct = this.products.splice(existingProductIndex, 1)[0];
+            this.products.push(removedProduct);
+        }
+    
+        console.log(JSON.parse(JSON.stringify(this.products)));
         this.calculateTotalPrice();
     }
+    
+    
     
     
     
@@ -302,7 +315,7 @@ export default class SalesComponent extends LightningElement {
     handleLaptopSelection(event) {
         const newLaptop = event.detail.value;
         this.laptop = newLaptop;
-        this.updateProduct('laptop', newLaptop, 0);
+        // this.updateProduct('laptop', newLaptop, this.laptopQuantity);
     }
     
 
@@ -318,7 +331,7 @@ export default class SalesComponent extends LightningElement {
       handleGeneralDeviceSelection(event) {
         const newGeneralDevice = event.detail.value;
         this.generalDevice = newGeneralDevice
-        this.updateProduct('generalDevice', newGeneralDevice, 0);
+        // this.updateProduct('generalDevice', newGeneralDevice, this.generalDeviceQuantity);
     }
 
     // 선택한 주변기기 수량 값을 가져옴 

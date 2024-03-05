@@ -1,8 +1,8 @@
 public with sharing class SaleTriggerHandler {
     /**
-    * 판매 레코드가 만들어졌을 때 고객유형을 판매로 업데이트 하는 method
+    * 판매 레코드가 만들어졌을 때 고객유형을 업데이트 하는 method
     */
-    public static void updateContactTypeToPurchase(List<Sale__c> saleList) {
+    public static void updateCustomerType(List<Sale__c> saleList) {
         Set<Id> contactIds = new Set<Id>();
         List<Contact>contactToUpdate = new List<Contact>();
         
@@ -11,17 +11,26 @@ public with sharing class SaleTriggerHandler {
         }
 
         for(Sale__c sc : saleList){
-            for(Contact con : [SELECT Id, Name, Type__c FROM Contact 
-                                                        WHERE Type__c = :Constants.CONTACT_TYPE_COUNSELING AND   
-                                                              Total_Purchase_Amount__c != null AND
-                                                              Id IN :contactIds
-                                                        ]){                            
-                if(sc.Is_Refund__c == false){
-                    con.Type__c = Constants.CONTACT_TYPE_PURCHASE;
-                    contactToUpdate.add(con);
+            for(Contact con : [SELECT Id, Name, Type__c, Total_Purchase_Amount__c 
+                               FROM Contact
+                               WHERE RecordTypeId = :Constants.CUSTOMER_RECORD_TYPE_ID
+                               AND Id IN :contactIds]){          
+                // 판매레코드에 환불이 체크되어 있지 않을때                  
+                if(!sc.Is_Refund__c){
+                    if(con.Type__c == Constants.CONTACT_TYPE_COUNSELING && 
+                    con.Total_Purchase_Amount__c != null){
+                        con.Type__c = Constants.CONTACT_TYPE_PURCHASE;
+                        contactToUpdate.add(con);
+                    }
+                // 판매레코드에 환불이 체크되어 있을때
+                } else if(sc.Is_Refund__c){
+                    if(con.Type__c == Constants.CONTACT_TYPE_PURCHASE && 
+                    (con.Total_Purchase_Amount__c == null || con.Total_Purchase_Amount__c == 0)){
+                        con.Type__c = Constants.CONTACT_TYPE_COUNSELING;
+                        contactToUpdate.add(con);
+                    }
                 }
             }
-
         }
 
         if(contactToUpdate.size() > 0) {
