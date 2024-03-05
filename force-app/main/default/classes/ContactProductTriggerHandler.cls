@@ -51,6 +51,7 @@ public with sharing class ContactProductTriggerHandler {
     */
     public static void insertAndUpdateSale(List<Contact_Products__c> contactProduct) {
         List<String> ProductNameList = new List<String>();
+        List<String> ProductNameList = new List<String>();
         String ProductName = '';
         List<Sale__c> saleToInsert = new List<Sale__c>();
         List<Sale__c> saleToUpdate = new List<Sale__c>();
@@ -68,6 +69,9 @@ public with sharing class ContactProductTriggerHandler {
         }
 
         // 제품이 여러개면 붙여서 출력하게 해줌 
+        }
+
+        // 제품이 여러개면 붙여서 출력하게 해줌 
         for(String pd : ProductNameList){
             ProductName += pd + '\n';
          }
@@ -79,6 +83,8 @@ public with sharing class ContactProductTriggerHandler {
         Decimal TotalPrice = (Decimal)TotalPriceResults[0].get('totalPrice'); 
          
         // 판매코드가 비어있을 때
+         
+        // 판매코드가 비어있을 때
         if(SalesCode.isEmpty()){
             for(Contact_Products__c cp : [SELECT Account__c, Contact__c, Order_Date_Time__c, Discount_Percent__c, Order_Code__c, Product_Name_Text__c
                                         FROM Contact_Products__c 
@@ -88,6 +94,7 @@ public with sharing class ContactProductTriggerHandler {
                     cp.Discount_Percent__c = 0; 
                 }
                 Decimal DiscountAmount = (TotalPrice * cp.Discount_Percent__c / 100); 
+                // 최종가격
                 // 최종가격
                 Decimal FinalPrice = TotalPrice - DiscountAmount; 
                 // 판매코드가(판매레코드가) 주문코드로부터 부여되서 생성되지 않았을 때 
@@ -112,18 +119,25 @@ public with sharing class ContactProductTriggerHandler {
             // 여러개의 제품을 주문했을 경우 추가할 제품명을 담아줌
             String AdditionalProductName = '';
             // 생성된 판매 레코드가 있을 경우 아이디를 가져오는 메서드
+            // 생성된 판매 레코드가 있을 경우 아이디를 가져오는 메서드
             Set<Id> SaleId = ContactProductController.getSaleId(contactProduct);
             Id salesId;
             TotalPrice = (Decimal)TotalPriceResults[0].get('totalPrice'); 
             
              // 추가한 제품명들을 이어서 담아줌
+            
+             // 추가한 제품명들을 이어서 담아줌
             for(String pd : ProductNameList){
                 AdditionalProductName += pd + '\n';
+                System.debug('Sale 업데이트될때의 AdditionalProductName ::' + AdditionalProductName);
             }
 
 
             // 업데이트할 판매 레코드를 불러오는 쿼리 
             for(Sale__c scToUpdate : [SELECT Id, List_of_Purchased_Items__c, Total_Price__c, Discount_Value__c, Final_Price__c, Discount_Percent__c
+                                    FROM Sale__c 
+                                    WHERE Id IN :SaleId]){
+                // 기존의 값에서 최종적으로 더해지는 값들로 업데이트 
                                     FROM Sale__c 
                                     WHERE Id IN :SaleId]){
                 // 기존의 값에서 최종적으로 더해지는 값들로 업데이트 
@@ -148,9 +162,13 @@ public with sharing class ContactProductTriggerHandler {
         }
         
         // 생성할 판매레코드가 생성 
+        
+        // 생성할 판매레코드가 생성 
         if (!saleToInsert.isEmpty()) {
             insert saleToInsert;
         }
+        
+        // 업데이트할 판매레코드가 있으면 업데이트
         
         // 업데이트할 판매레코드가 있으면 업데이트
         if (!saleToUpdate.isEmpty()) {

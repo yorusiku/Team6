@@ -11,5 +11,4 @@ public with sharing class ContactController {
                 WITH SECURITY_ENFORCED
                 ORDER BY Name];
     }
-
 }

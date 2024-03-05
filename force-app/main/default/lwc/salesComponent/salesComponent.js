@@ -76,7 +76,7 @@ export default class SalesComponent extends LightningElement {
         this.laptopRows.push({ id: newRowId });
         this.updateProduct('laptop', '', 1);
     }
-
+    
     addNewGeneralDeviceRow(index) {
         const newRowId = this.generateId();
         this.generalDeviceRows.push({ id: newRowId });
