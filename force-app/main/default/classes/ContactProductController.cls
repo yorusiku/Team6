@@ -61,23 +61,23 @@ public with sharing class ContactProductController {
     /**
     * 고객주문제품 record의 size를 count하는 method 
     */ 
-    public static Integer countOrderCodeSize(List<Contact_Products__c> contactProduct){
-        Integer OrderCodeSize;
+    // public static Integer countOrderCodeSize(List<Contact_Products__c> contactProduct){
+    //     Integer OrderCodeSize;
 
-        Set<String> OrderCode = new Set<String>();
-        for(Contact_Products__c cp : contactProduct){
-            OrderCode.add(cp.Order_Code__c);
-        } 
-        List<AggregateResult> OrderCodeCount = [SELECT COUNT(Order_Code__c) 
-                                                  FROM Contact_Products__c 
-                                                  WHERE Order_Code__c IN :OrderCode]; 
+    //     Set<String> OrderCode = new Set<String>();
+    //     for(Contact_Products__c cp : contactProduct){
+    //         OrderCode.add(cp.Order_Code__c);
+    //     } 
+    //     List<AggregateResult> OrderCodeCount = [SELECT COUNT(Order_Code__c) 
+    //                                               FROM Contact_Products__c 
+    //                                               WHERE Order_Code__c IN :OrderCode]; 
         
-        if (!OrderCodeCount.isEmpty()) {
-            OrderCodeSize = Integer.valueOf(OrderCodeCount[0].get('expr0'));
-        }
+    //     if (!OrderCodeCount.isEmpty()) {
+    //         OrderCodeSize = Integer.valueOf(OrderCodeCount[0].get('expr0'));
+    //     }
 
-        return OrderCodeSize;
-    }
+    //     return OrderCodeSize;
+    // }
 
     // 고객주문제품코드에서 판매코드를 return하는 method 
     public static Set<String> getSalesCode(List<Contact_Products__c> contactProduct){
@@ -87,20 +87,17 @@ public with sharing class ContactProductController {
             OrderCode.add('S'+ cp.Order_Code__c);
         } 
 
-        System.debug('OrderCode::'+ OrderCode);
         List<sale__c> saleList = [SELECT Id , name, Sales_Code__c
                                FROM sale__c
                                WHERE Sales_Code__c IN : OrderCode];
         for(sale__c sc : saleList){
             salesCode.add(sc.Sales_Code__c);
-            System.debug('제품주문의 세일즈코드::' + sc.Sales_Code__c);
         }
 
         if (salesCode.isEmpty()) {
             System.debug('Sales Code는 null');
         }
         
-        System.debug('getSalesCode 에서의::' + salesCode);
         return salesCode;
     }
 
@@ -112,14 +109,87 @@ public with sharing class ContactProductController {
         for(Contact_Products__c cp : contactProduct){
             OrderCode.add('S'+ cp.Order_Code__c);
         }
-        System.debug('getSaleId의 OrderCode' + OrderCode);
         
         for(sale__c sc : [SELECT Id, name, Sales_Code__c
         FROM sale__c
         WHERE Sales_Code__c IN : OrderCode]){
             salesId.add(sc.Id);
-            System.debug('제품주문의 salesId::' + salesId);
         }     
         return salesId;
     }
+
+    // 고객주문제품에서 고객의 총 구매금액을 계산하는 메서드
+    public static Integer getCustomerTotalPurchase(Contact con){
+        Integer totalCustomerPurchase = 0;
+        
+        AggregateResult[] totalPriceResults = [SELECT SUM(Total_Purchase__c)totalPrice 
+                                                FROM Contact_Products__c 
+                                                WHERE Contact__c = :con.Id
+                                                AND Status__c != :Constants.CONTACT_PRODUCT_STATUS_REFUNDED
+                                                AND Order_Date_Time__c >= :con.Due_Date_90Days__c 
+                                                AND Order_Date_Time__c <= Today];
+        Decimal totalPrice = (Decimal)totalPriceResults[0].get('totalPrice'); 
+
+        if(totalPrice == null){
+            return 0;
+        }
+
+        return totalCustomerPurchase = totalPrice.intValue();
+    }
+
+    // 고객주문제품에서 고객의 총 노트북 구매 금액을 계산하는 메서드
+    public static Integer getCustomerTotalNotebookPurchase(Contact con){
+        Integer totalNotebookPurchasePurchase = 0;
+   
+        AggregateResult[] totalPriceResults = [SELECT SUM(Total_Purchase_of_Laptops__c)totalNoteBookPrice 
+                                                FROM Contact_Products__c 
+                                                WHERE Contact__c = :con.Id
+                                                AND Status__c != :Constants.CONTACT_PRODUCT_STATUS_REFUNDED
+                                                AND Order_Date_Time__c >= :con.Due_Date_90Days__c 
+                                                AND Order_Date_Time__c <= Today];
+
+        Decimal totalNoteBookPrice = (Decimal)totalPriceResults[0].get('totalNoteBookPrice'); 
+       
+        if(totalNoteBookPrice == null){
+            return 0;
+        }
+        return totalNotebookPurchasePurchase = totalNoteBookPrice.intValue();
+    }
+
+    // 고객주문제품에서 고객의 총 주변기기 구매 금액을 계산하는 메서드
+    public static Integer getCustomerTotalGeneralDevicePurchase(Contact con){
+        Integer totalGeneralDevicePurchase = 0;
+   
+        AggregateResult[] totalPriceResults = [SELECT SUM(Total_Purchase_of_General_Devices__c)totalGeneralDevicePrice 
+                                                FROM Contact_Products__c 
+                                                WHERE Contact__c = :con.Id
+                                                AND Status__c != :Constants.CONTACT_PRODUCT_STATUS_REFUNDED
+                                                AND Order_Date_Time__c >= :con.Due_Date_90Days__c 
+                                                AND Order_Date_Time__c <= Today];
+                                                
+        Decimal totalGeneralDevicePrice = (Decimal)totalPriceResults[0].get('totalGeneralDevicePrice'); 
+
+        if(totalGeneralDevicePrice == null){
+            return 0;
+        }
+        return totalGeneralDevicePurchase = totalGeneralDevicePrice.intValue();
+    }
+
+
+    // 고객주문제품에서 고객의 총 구매제품을 담아주는 메서드
+    public static String getCustomerPurchaseItemList(Contact con){
+        String ProductName = '';
+
+        for(Contact_Products__c cp : [SELECT Id, name, Product_Name_Text__c
+                                      FROM Contact_Products__c 
+                                      WHERE Contact__c = :con.Id
+                                      AND Status__c != :Constants.CONTACT_PRODUCT_STATUS_REFUNDED
+                                      AND Order_Date_Time__c >= :con.Due_Date_90Days__c 
+                                      AND Order_Date_Time__c <= Today]){
+            ProductName += cp.Product_Name_Text__c + '\n';
+        }
+
+        return ProductName;
+    }
+
 }

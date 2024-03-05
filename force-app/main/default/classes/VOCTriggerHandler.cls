@@ -16,7 +16,7 @@ public with sharing class VOCTriggerHandler {
             Integer VOCCount = calculateVOCCountForCustomer(VOCId);
             
             // Contact 레코드를 식별하여 업데이트
-            Contact contactToUpdate = [SELECT Id FROM Contact WHERE Id = :VOCId LIMIT 1];
+            Contact contactToUpdate = [SELECT Id FROM Contact WHERE Id = :VOCId];
             if (contactToUpdate != null) {
                 contactToUpdate.VOC_Count__c = VOCCount;
                 contactsToUpdate.add(contactToUpdate);
@@ -28,13 +28,12 @@ public with sharing class VOCTriggerHandler {
             Integer accountVOCCount = calculateVOCCountForAccount(storeName);
             
             // Account 레코드를 식별하여 업데이트
-            Account accountToUpdate = [SELECT Id FROM Account WHERE Name = :storeName LIMIT 1];
+            Account accountToUpdate = [SELECT Id FROM Account WHERE Name = :storeName];
             if (accountToUpdate != null) {
                 accountToUpdate.Total_VOC_Count__c = accountVOCCount;
                 accountsToUpdate.add(accountToUpdate);
             }
-        }
-
+        } 
 
         // Contact 및 Account 업데이트
         if (!contactsToUpdate.isEmpty()) {

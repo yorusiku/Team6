@@ -1,0 +1,43 @@
+<template>
+  <lightning-tabset variant="scoped">
+    <lightning-tab label="제품정보">
+        <template if:true={products}>
+            <div class="slds-scrollable_y">
+                <lightning-layout horizontal-align="center" multiple-rows>
+                    <template for:each={products} for:item="product">
+                        <lightning-layout-item key={product.Id} padding="around-small" size="12" small-device-size="6" medium-device-size="4" large-device-size="3">
+                            <c-product-tile product={product} onproductselect={handleProductSelect} selected-product-id={selectedProductId}></c-product-tile>
+                        </lightning-layout-item>
+                    </template>
+                </lightning-layout>
+            </div>
+        </template>
+    </lightning-tab>
+    <lightning-tab label="노트북제품정보">
+      <template if:true={notebookProducts}>
+          <div class="slds-scrollable_y">
+              <lightning-layout horizontal-align="center" multiple-rows>
+                  <template for:each={notebookProducts} for:item="notebookProduct">
+                      <lightning-layout-item key={notebookProduct.Id} padding="around-small" size="12" small-device-size="6" medium-device-size="4" large-device-size="3">
+                          <c-product-tile product={notebookProduct} onproductselect={handleNotebookProductSelect} selected-product-id={selectedNotebookProductId}></c-product-tile>
+                      </lightning-layout-item>
+                  </template>
+              </lightning-layout>
+          </div>
+      </template>
+  </lightning-tab>
+  <lightning-tab label="주변기기제품정보">
+    <template if:true={generalDeviceProducts}>
+        <div class="slds-scrollable_y">
+            <lightning-layout horizontal-align="center" multiple-rows>
+                <template for:each={generalDeviceProducts} for:item="generalDeviceProduct">
+                    <lightning-layout-item key={generalDeviceProduct.Id} padding="around-small" size="12" small-device-size="6" medium-device-size="4" large-device-size="3">
+                        <c-product-tile product={generalDeviceProduct} onproductselect={handleGeneralDeviceProductSelect} selected-product-id={selectedGeneralDeviceProductId}></c-product-tile>
+                    </lightning-layout-item>
+                </template>
+            </lightning-layout>
+        </div>
+    </template>
+</lightning-tab>
+</lightning-tabset>
+</template>

@@ -3,7 +3,15 @@
 * 
 */
 public with sharing class Utility {
-    public Utility() {
 
+    // Tier Id를 이름별로 return하는 메서드
+    public static Id getTierId(String TierName){
+        List<Tier__c> tierId = [SELECT Id FROM Tier__c WHERE Name = :TierName LIMIT 1]; 
+   
+        if(!tierId.isEmpty()){
+            return tierId[0].Id;
+        } else {
+            return tierId[1].Id;
+        }
     }
 }

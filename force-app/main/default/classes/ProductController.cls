@@ -8,7 +8,7 @@ public with sharing class ProductController {
         return [SELECT Id, Name, ProductCode, Family, Price__c, Image__c
                 FROM Product2
                 WITH SECURITY_ENFORCED
-                ORDER BY Name];
+                ORDER BY Family];
     }
 
     /**
