@@ -169,24 +169,55 @@ public with sharing class ContactProductTriggerHandler {
             for (Contact_Products__c cp : contactProducts) {
                 accountIds.add(cp.Account__c);
             }
-    
+            // 현재 날짜와 비교할 Date 변수 설정
+            Date today = Date.today();
+            // Date firstDayOfYear = today.toStartOfYear(); //ex) 2024-01-01
+            Date firstDayOfMonth = today.toStartOfMonth();
+            Date firstDayOfWeDek = today.toStartOfWeek();
+            
             // 필요한 Account 레코드 조회
             Map<Id, Account> accountMap = new Map<Id, Account>([
-                SELECT Id, Total_Sales__c
+                SELECT Id, Total_Sales__c, Annual_Sales__c,
+                Monthly_Sales__c, Daily_Sales__c, Weekly_Sales__c
                 FROM Account
                 WHERE Id IN :accountIds
-            ]);
-    
-            // 각 Account의 총 판매액 업데이트
-            for (Contact_Products__c cp : contactProducts) {
-                if (accountMap.containsKey(cp.Account__c)) {
-                    Account acc = accountMap.get(cp.Account__c);
-                    if (acc.Total_Sales__c == null) {
-                        acc.Total_Sales__c = cp.Total_Purchase__c;
-                    } else {
-                        acc.Total_Sales__c += cp.Total_Purchase__c;
-                    }
+                ]);
+                
+                // 각 Account의 총 판매액 업데이트 + 초기화
+                for (Contact_Products__c cp : contactProducts) {
+                    //총 매출액 구하기
+                    if (accountMap.containsKey(cp.Account__c)) {
+                        Account acc = accountMap.get(cp.Account__c);
+                        if (acc.Total_Sales__c == null) {
+                            acc.Total_Sales__c = cp.Total_Purchase__c;
+                        } else {
+                            acc.Total_Sales__c += cp.Total_Purchase__c;
+                        }
+                        
+                        // Date lastAnnualUpdate = acc.Last_Annual_Sales_Update__c;
+                        // Date lastMonthlyUpdate = acc.Last_Monthly_Sales_Update__c;
+                        // Date lastDailyUpdate = acc.Last_Daily_Sales_Update__c;
+                        //2024 0101 이 2025 0101이 되기전까지 계속 유지하고 바뀌면 업데이트
+
+                    // 연매출 초기화
+                    // if (lastAnnualUpdate == null || lastAnnualUpdate < firstDayOfYear) {
+                    //     acc.Annual_Sales__c = 0;
+                    //     acc.Last_Annual_Sales_Update__c = today;
+                    // }
+                    // // 월매출 초기화
+                    // if (lastMonthlyUpdate == null || lastMonthlyUpdate < firstDayOfMonth) {
+                    //     acc.Monthly_Sales__c = 0;
+                    //     acc.Last_Monthly_Sales_Update__c = today;
+                    // }
+                    // // 일매출 초기화
+                    // if (lastDailyUpdate == null || !lastDailyUpdate.equals(today)) {
+                    //     acc.Daily_Sales__c = 0;
+                    //     acc.Last_Daily_Sales_Update__c = today;
+                    // }
                 }
+
+
+
             }
     
             // 업데이트된 Account 레코드 저장
