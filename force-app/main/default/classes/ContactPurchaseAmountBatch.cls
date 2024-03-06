@@ -18,15 +18,27 @@ public with sharing class ContactPurchaseAmountBatch implements Database.Batchab
         for(Contact con : contactList){
             if(con.Purchase_In_Recent_90Days__c){
                 Integer customerTotalPurchase = ContactProductController.getCustomerTotalPurchase(con);
+                System.debug(customerTotalPurchase);
                 Integer customerTotalNotebookPurchase = ContactProductController.getCustomerTotalNotebookPurchase(con);
+                System.debug(customerTotalNotebookPurchase);
                 Integer customerTotalGeneralDevicePurchase = ContactProductController.getCustomerTotalGeneralDevicePurchase(con);
+                System.debug(customerTotalGeneralDevicePurchase);
                 String customerPurchasedItems = ContactProductController.getCustomerPurchaseItemList(con);
+                System.debug(customerPurchasedItems);
 
                 con.Total_Purchase_Amount__c = customerTotalPurchase;
                 con.Total_Purchase_of_Laptops__c = customerTotalNotebookPurchase;
                 con.Total_Purchase_of_General_Devices__c = customerTotalGeneralDevicePurchase;
                 con.List_of_purchased_items__c = customerPurchasedItems;
                 contactListToUpdate.add(con);
+
+                if(customerTotalPurchase == null){
+                    con.Total_Purchase_Amount__c = 0;
+                    con.Total_Purchase_of_Laptops__c = 0;
+                    con.Total_Purchase_of_General_Devices__c = 0;
+                    con.List_of_purchased_items__c = '';
+                    contactListToUpdate.add(con);
+                }
             }
         }
 

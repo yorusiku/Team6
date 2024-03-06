@@ -125,7 +125,7 @@ public with sharing class ContactProductController {
         AggregateResult[] totalPriceResults = [SELECT SUM(Total_Purchase__c)totalPrice 
                                                 FROM Contact_Products__c 
                                                 WHERE Contact__c = :con.Id
-                                                AND Status__c != :Constants.CONTACT_PRODUCT_STATUS_REFUNDED
+                                                AND Status__c = :Constants.CONTACT_PRODUCT_STATUS_PURCHASED
                                                 AND Order_Date_Time__c >= :con.Due_Date_90Days__c 
                                                 AND Order_Date_Time__c <= Today];
         Decimal totalPrice = (Decimal)totalPriceResults[0].get('totalPrice'); 
@@ -144,7 +144,7 @@ public with sharing class ContactProductController {
         AggregateResult[] totalPriceResults = [SELECT SUM(Total_Purchase_of_Laptops__c)totalNoteBookPrice 
                                                 FROM Contact_Products__c 
                                                 WHERE Contact__c = :con.Id
-                                                AND Status__c != :Constants.CONTACT_PRODUCT_STATUS_REFUNDED
+                                                AND Status__c = :Constants.CONTACT_PRODUCT_STATUS_PURCHASED
                                                 AND Order_Date_Time__c >= :con.Due_Date_90Days__c 
                                                 AND Order_Date_Time__c <= Today];
 
@@ -163,7 +163,7 @@ public with sharing class ContactProductController {
         AggregateResult[] totalPriceResults = [SELECT SUM(Total_Purchase_of_General_Devices__c)totalGeneralDevicePrice 
                                                 FROM Contact_Products__c 
                                                 WHERE Contact__c = :con.Id
-                                                AND Status__c != :Constants.CONTACT_PRODUCT_STATUS_REFUNDED
+                                                AND Status__c = :Constants.CONTACT_PRODUCT_STATUS_PURCHASED
                                                 AND Order_Date_Time__c >= :con.Due_Date_90Days__c 
                                                 AND Order_Date_Time__c <= Today];
                                                 
@@ -183,7 +183,7 @@ public with sharing class ContactProductController {
         for(Contact_Products__c cp : [SELECT Id, name, Product_Name_Text__c
                                       FROM Contact_Products__c 
                                       WHERE Contact__c = :con.Id
-                                      AND Status__c != :Constants.CONTACT_PRODUCT_STATUS_REFUNDED
+                                      AND Status__c = :Constants.CONTACT_PRODUCT_STATUS_PURCHASED
                                       AND Order_Date_Time__c >= :con.Due_Date_90Days__c 
                                       AND Order_Date_Time__c <= Today]){
             ProductName += cp.Product_Name_Text__c + '\n';
