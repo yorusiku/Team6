@@ -178,17 +178,35 @@ public with sharing class ContactProductTriggerHandler {
             Map<Id, Account> accountMap = new Map<Id, Account>([
                 SELECT Id, Total_Sales__c, Annual_Sales__c,
                 Monthly_Sales__c, Daily_Sales__c, Weekly_Sales__c,
-                LastYearlyUpdate__c,LastMonthlyUpdate__c,LastWeeklyUpdate__c,LastDailyUpdate__c
+                LastYearlyUpdate__c,LastMonthlyUpdate__c,LastWeeklyUpdate__c,LastDailyUpdate__c,
+                Total_General_Device_Sales__c,Total_Laptop_Sales__c
                 FROM Account
                 WHERE Id IN :accountIds
                 ]);
                 
                 // 각 Account의 총 판매액 업데이트 + 초기화
                 for (Contact_Products__c cp : contactProducts) {
-                    //총 매출액 구하기
+                    
                     if (accountMap.containsKey(cp.Account__c)) {
                         Account acc = accountMap.get(cp.Account__c);
+                        // 총매출액 구하기
+                        if(acc.Total_Sales__c == null) {
+                            acc.Total_Sales__c = cp.Total_Purchase__c;
+                        } else {
                             acc.Total_Sales__c += cp.Total_Purchase__c;
+                        }
+                        //주변기기 매출 총액
+                        if(acc.Total_General_Device_Sales__c == null) {
+                            acc.Total_General_Device_Sales__c = cp.Total_Purchase_of_General_Devices__c;
+                        } else {
+                            acc.Total_General_Device_Sales__c += cp.Total_Purchase_of_General_Devices__c;
+                        }
+                        //노트북 매출 총액
+                        if(acc.Total_Laptop_Sales__c == null) {
+                            acc.Total_Laptop_Sales__c = cp.Total_Purchase_of_Laptops__c;
+                        } else {
+                            acc.Total_Laptop_Sales__c += cp.Total_Purchase_of_Laptops__c;
+                        }
                         
                         //날짜가 null || 다르면 값을 갱신 매출액 초기화
                         if(acc.LastYearlyUpdate__c == null || acc.LastYearlyUpdate__c != year) {
