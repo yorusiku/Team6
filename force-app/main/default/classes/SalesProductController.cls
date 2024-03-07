@@ -1,41 +1,5 @@
 public with sharing class SalesProductController {
-    public static void updateSerialNumbers(List<Sales_Product__c> salesProducts){
-        Boolean firstrun = true;
 
-        Set<Id> existingSalesProductIds = new Set<Id>(); // 기존 Sales_Product__c 레코드의 ID를 추적하기 위한 세트
-        // Sales_Product__c 레코드의 ID를 가져오는 쿼리 실행
-        String query;
-        for(Sales_Product__c sp : [SELECT Id, Contact_Products__r.Order_Code__c FROM Sales_Product__c WHERE Id IN :salesProducts]) {
-            existingSalesProductIds.add(sp.Id); // Sales_Product__c 레코드의 ID를 세트에 추가
-            query = sp.Contact_Products__r.Order_Code__c;
-        }
-        System.debug('query:'+ query);
-        List<Sales_Product__c> salesProductListToUpdate = new List<Sales_Product__c>();
-        // 주문 코드를 기반으로 시리얼 번호 생성 및 Sales_Product__c 레코드 업데이트
-        if(firstrun){
-            for(Sales_Product__c sp : salesProducts){
-                if(existingSalesProductIds.contains(sp.Id)) {
-                    String orderCode = 'S' + query;
-                    System.debug('orderCode'+ orderCode);
-                    Integer i = 1; // 일련번호 초기화
-                    i++;
-                    String serialNumber = orderCode + i;
-                    salesProductListToUpdate.add(
-                        new Sales_Product__c(
-                            Id = sp.Id,
-                            Serial_Number__c = serialNumber)); // 업데이트할 Sales_Product__c 레코드를 리스트에 추가
-                    System.debug('serialNumber::' + serialNumber);
-                    System.debug('serialNumber::' +salesProductListToUpdate);
-                }
-            }
-            firstrun = false; 
-        }
-
-        // Sales_Product__c 레코드를 업데이트
-        if (!salesProductListToUpdate.isEmpty()) {
-            update salesProductListToUpdate;
-        }
-    }
     // public static void updateSerialNumbers(List<Sales_Product__c> salesProducts){
     //     Set<Id> existingSalesProductIds = new Set<Id>(); // 기존 Sales_Product__c 레코드의 ID를 추적하기 위한 세트
     //     // Sales_Product__c 레코드의 ID를 가져오는 쿼리 실행
@@ -65,7 +29,7 @@ public with sharing class SalesProductController {
     //         update salesProductListToUpdate;
     //     }
     // }
-}
+
 
 
 
@@ -117,4 +81,4 @@ public with sharing class SalesProductController {
 //         serialNumberCounter++;
 //         return serialNumber;
 //     }
-// }
+}

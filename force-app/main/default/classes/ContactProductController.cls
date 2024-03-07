@@ -192,4 +192,68 @@ public with sharing class ContactProductController {
         return ProductName;
     }
 
+
+    /**
+    * 모든 제품들을 불러오는 method 
+    */
+    @AuraEnabled(cacheable=true scope='global')
+    public static List<Contact_Products__c> searchContactProductsByOrderCode(String searchTerm) {
+        searchTerm = searchTerm.trim();
+        if (searchTerm == '') {
+            return getAllPurchasedContactProducts();
+        }
+        
+        searchTerm = '%' + searchTerm + '%';
+
+        return [SELECT Id, Name,  Product_Name_Text__c, Contact__r.name, Order_Code__c 
+                FROM Contact_Products__c 
+                WHERE Status__c = 'Purchased'
+                AND Is_SaleProduct_Created__c = false
+                AND Order_Code__c LIKE :searchTerm 
+                WITH SECURITY_ENFORCED
+                ORDER BY CreatedDate DESC ];
+    }
+
+    @AuraEnabled(cacheable=true scope='global')
+    public static List<Contact_Products__c> getAllPurchasedContactProducts() {
+        return [
+            SELECT Id, Name, Product_Name_Text__c, Contact__r.name, Order_Code__c 
+            FROM Contact_Products__c 
+            WHERE Is_SaleProduct_Created__c = false
+            AND Status__c = 'Purchased'
+            WITH SECURITY_ENFORCED
+            ORDER BY CreatedDate DESC
+            LIMIT 10
+        ];
+    }
+
+    @AuraEnabled
+    public static void addSalesProduct(String orderCode){
+        List<Sales_Product__c> salesProductsToInsert = new List<Sales_Product__c>(); 
+    
+        for (Contact_Products__c cp : [SELECT Id, Order_Code__c 
+                                        FROM Contact_Products__c
+                                        WHERE Order_Code__c = :orderCode]) {
+            Sales_Product__c sp = new Sales_Product__c();  
+            sp.Serial_Number__c = generateRandomString(16); 
+            sp.Contact_Products__c = cp.Id;
+            salesProductsToInsert.add(sp);
+        }
+        
+        if (!salesProductsToInsert.isEmpty()) {
+            System.debug('salesProductsToInsert::' + salesProductsToInsert);
+            insert salesProductsToInsert;
+        }
+    }
+
+     // 고유한 랜덤 문자열 생성
+     public static String generateRandomString(Integer length) {
+        String allowedCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        String randomString = '';
+        while (randomString.length() < length) {
+            Integer randomInt = Math.mod(Math.abs(Crypto.getRandomInteger()), allowedCharacters.length());
+            randomString += allowedCharacters.substring(randomInt, randomInt + 1);
+        }
+        return randomString;
+    }
 }

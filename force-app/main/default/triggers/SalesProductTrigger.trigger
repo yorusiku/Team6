@@ -1,7 +1,7 @@
 trigger SalesProductTrigger on Sales_Product__c (after insert, after update) {
   if(Trigger.isAfter)
       if(Trigger.isInsert){
-        SalesProductController.updateSerialNumbers(Trigger.new);
+        //SalesProductTriggerHandler.updateSerialNumbers(Trigger.new);
       }
   }
 

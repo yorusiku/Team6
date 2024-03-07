@@ -8,6 +8,7 @@ import addContactProducts from '@salesforce/apex/ContactProductController.addCon
 export default class SalesComponent extends LightningElement {
 
     @api recordId;
+    @track showMessage = false;
     @track recordId;
     @track contactId;
     @track account = '';
@@ -22,6 +23,7 @@ export default class SalesComponent extends LightningElement {
     @track discount = 0;
     @track products = [];
     @track rowIndex = '';
+    @track productRecordId= '';
 
     @track totalPrice = {
         originalTotalPrice: 0,
@@ -54,6 +56,8 @@ export default class SalesComponent extends LightningElement {
     // 페이지 로드 시 contactId 값에 값을 recordId 할당.
     connectedCallback() {
         this.contactId = this.recordId;
+        this.generalDeviceRows = [];
+        this.laptopRows = [];
 
 
         // const existingLaptopRow = this.laptopRows[0];
@@ -74,29 +78,49 @@ export default class SalesComponent extends LightningElement {
     addNewLaptopRow(index) {
         const newRowId = this.generateId();
         this.laptopRows.push({ id: newRowId });
-        this.updateProduct('laptop', '', 1);
+        this.updateProduct('laptop', '', 0);
     }
 
     addNewGeneralDeviceRow(index) {
         const newRowId = this.generateId();
         this.generalDeviceRows.push({ id: newRowId });
-        this.updateProduct('generalDevice', '', 1);
+        this.updateProduct('generalDevice', '', 0);
     }
     
 
 
     ////행 삭제와 함께 추가된 물품 삭제
-
-    removeProductByRowId(rowId) {
-        this.products = this.products.filter(item => item.rowId !== rowId);
+    removeLatestProductByType(type) {
+        console.log("Before removal:", JSON.parse(JSON.stringify(this.products)));
+    
+        // 해당 타입의 제품들 중에서 제일 마지막에 있는 값을 찾아서 삭제
+        const indexToRemove = this.products.reduceRight((latestIndex, current, currentIndex, array) => {
+            if (current.type === type && currentIndex > latestIndex) {
+                return currentIndex;
+            } else {
+                return latestIndex;
+            }
+        }, -1);
+    
+        // 최신값을 제외한 새로운 배열 생성
+        if (indexToRemove !== -1) {
+            this.products.splice(indexToRemove, 1);
+        }
+    
+        console.log("After removal:", JSON.parse(JSON.stringify(this.products)));
     }
+    
+    
+    
+    
+
 
     deleteLastLaptopRow() {
-        if (this.laptopRows.length > 1) {
+        if (this.laptopRows.length > -1) {
             const lastRowId = this.laptopRows.pop().id;
             this.laptop = '';  
             this.laptopQuantity = 0;
-            this.removeProductByRowId(lastRowId);
+            this.removeLatestProductByType('laptop'); // laptop에 해당하는 행 제거
             console.log(this.laptopRows);
         } else {
             this.dispatchEvent(
@@ -108,13 +132,13 @@ export default class SalesComponent extends LightningElement {
             );
         }
     }
-    
+
     deleteLastGeneralDeviceRow() {
-        if (this.generalDeviceRows.length > 1) {
+        if (this.generalDeviceRows.length > -1) {
             const lastRowId = this.generalDeviceRows.pop().id;
             this.generalDevice = '';  
             this.generalDeviceQuantity = 0;
-            this.removeProductByRowId(lastRowId);
+            this.removeLatestProductByType('generalDevice'); // generalDevice에 해당하는 행 제거
             console.log(this.generalDeviceRows);
         } else {
             this.dispatchEvent(
@@ -155,7 +179,7 @@ export default class SalesComponent extends LightningElement {
             this.laptops = data.map(laptop => ({
                 label: laptop.Name,
                 value: laptop.Id,
-                price: laptop.Price__c
+                price: laptop.Price__c,
             }));
         } else if (error) {
             console.error('Error fetching accounts:', error);
@@ -227,12 +251,18 @@ export default class SalesComponent extends LightningElement {
             const discountAmount = originalTotalPrice * (discount / 100);
             const discountedPrice = originalTotalPrice - discountAmount;
     
+            const formattedOriginalTotalPrice = originalTotalPrice.toLocaleString();
+            const formattedDiscountAmount = discountAmount.toLocaleString();
+            const formattedDiscountedPrice = discountedPrice.toLocaleString();
+            const formattedLaptopTotalPrice = laptopTotalPrice.toLocaleString();
+            const formattedGeneralDeviceTotalPrice = generalDeviceTotalPrice.toLocaleString();
+
             this.totalPrice = {
-                originalTotalPrice,
-                laptopTotalPrice,
-                generalDeviceTotalPrice,
-                discountAmount,
-                discountedPrice
+                formattedOriginalTotalPrice,
+                formattedGeneralDeviceTotalPrice,
+                formattedLaptopTotalPrice,
+                formattedDiscountAmount,
+                formattedDiscountedPrice
             };
     
         }
@@ -250,41 +280,38 @@ export default class SalesComponent extends LightningElement {
     
     
     updateProduct(type, productId, quantity) {
-        const existingProductIndex = this.products.findIndex(item => productId === item.productId);
+        // 새로운 제품 추가
+        if (productId && quantity) {
+            const newProduct = {
+                type: type,
+                productId: productId,
+                quantity: quantity,
+            };
     
-        if (existingProductIndex !== -1) {
-            // 이미 존재하면 업데이트
-            if (this.products[existingProductIndex].quantity) {
-                this.products[existingProductIndex].quantity = quantity;
-            } else if (this.products[existingProductIndex].productId !== productId) {
-                this.products[existingProductIndex].productId = productId;
-            }
-        } else {
-            // 존재하지 않으면 추가
-            const selectedProductIndex = this.products.findIndex(item => item.productId === productId && item.type === type);
+            // 중복된 productId를 가진 오래된 배열 찾기
+            const oldProducts = this.products.filter(item => item.productId === productId);
     
-            if (selectedProductIndex !== -1) {
-                // 이미 선택된 경우 기존 제품 업데이트
-                if (this.products[selectedProductIndex].productId !== productId || this.products[selectedProductIndex].quantity) {
-                    this.products[selectedProductIndex].productId = productId;
-                    this.products[selectedProductIndex].quantity = quantity;
-                }
+            // 이전 값이 존재하면 해당 배열에서 제거
+            if (oldProducts.length > 0) {
+                const updatedProducts = oldProducts.map(product => {
+                    // 원하는 조건에 맞는 경우에만 수정
+                    if (product.productId === productId && product.type === type) {
+                        return {
+                            ...product,
+                            productId: productId,
+                            quantity: quantity
+                        };
+                    }
+                    // 조건에 맞지 않으면 그대로 반환
+                    return product;
+                });
+    
+                // 기존 배열에서 수정된 항목을 제외하고, 새로운 제품 추가
+                this.products = this.products.filter(item => item.productId !== productId).concat(updatedProducts);
             } else {
                 // 새로운 제품 추가
-                if (productId) {
-                    this.products.push({
-                        type: type,
-                        productId: productId,
-                        quantity: quantity,
-                    });
-                }
+                this.products.push(newProduct);
             }
-        }
-    
-        // 배열에서 기존 제품 제거 후 다시 추가
-        if (existingProductIndex !== -1 && this.products[existingProductIndex].productId !== productId) {
-            const removedProduct = this.products.splice(existingProductIndex, 1)[0];
-            this.products.push(removedProduct);
         }
     
         console.log(JSON.parse(JSON.stringify(this.products)));
@@ -292,43 +319,29 @@ export default class SalesComponent extends LightningElement {
     }
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-        
-            
-    
-    
 
     // 선택한 판매점의 값을 가져옴 
-    handleAccountSelection(event) {
+    handleAccountSelection(event, rowid) {
         this.account = event.detail.value;
+
     }
 
-    
     // 선택한 노트북 값 가져옴
-    handleLaptopSelection(event) {
+    handleLaptopSelection(event, rowid) {
         const newLaptop = event.detail.value;
         this.laptop = newLaptop;
+        this.productRecordId = this.laptop.productId
         // this.updateProduct('laptop', newLaptop, this.laptopQuantity);
     }
-    
-
     // 선택한 노트북 수량 값을 가져옴 
     handleLaptopQuantityCountChange(event) {
         this.laptopQuantity = isNaN(parseInt(event.target.value, 10)) ? 0 : parseInt(event.target.value, 10);
         this.updateProduct('laptop', this.laptop, this.laptopQuantity);
-        this.calculateTotalPrice();    
     }
     
 
       // 선택한 주변기기 제품 값을 가져옴 
-      handleGeneralDeviceSelection(event) {
+    handleGeneralDeviceSelection(event) {
         const newGeneralDevice = event.detail.value;
         this.generalDevice = newGeneralDevice
         // this.updateProduct('generalDevice', newGeneralDevice, this.generalDeviceQuantity);
@@ -338,7 +351,6 @@ export default class SalesComponent extends LightningElement {
     handleGeneralDeviceQuantityCountChange(event) {
         this.generalDeviceQuantity = isNaN(parseInt(event.target.value, 10)) ? 0 : parseInt(event.target.value, 10);
         this.updateProduct('generalDevice', this.generalDevice, this.generalDeviceQuantity);
-        this.calculateTotalPrice();  
     }
     
 
@@ -368,18 +380,28 @@ export default class SalesComponent extends LightningElement {
 
       // 고객 제품 주문 생성 
     addContactProducts() {
-    const uniqueProducts = this.products.reduce((acc, current) => {
-        const isDuplicate = acc.some(item => item.type === current.type && item.productId === current.productId);
-        if (!isDuplicate) {
-            return acc.concat(Array.from({ length: current.quantity }, () => ({ ...current })));
-        } else {
-            return acc;
-        }
-    }, []);
+        const uniqueProducts = this.products.reduce((acc, current) => {
+            const isDuplicate = acc.some(item => item.type === current.type && item.productId === current.productId);
+            if (!isDuplicate) {
+                return acc.concat(Array.from({ length: current.quantity }, () => ({ ...current })));
+            } else {
+                return acc;
+            }
+        }, []);
 
     // 주문 처리
     if (uniqueProducts.length > 0) {
-        const promises = uniqueProducts.map(product => {
+        const laptopProducts = uniqueProducts.filter(product => product.type === 'laptop');
+        const generalDeviceProducts = uniqueProducts.filter(product => product.type === 'generalDevice');
+
+        // ProductId 별로 정렬
+        laptopProducts.sort((a, b) => a.productId.localeCompare(b.productId));
+        generalDeviceProducts.sort((a, b) => a.productId.localeCompare(b.productId));
+
+        // 정렬된 배열 다시 합치기
+        const sortedAndMergedProducts = laptopProducts.concat(generalDeviceProducts);
+
+        const promises = sortedAndMergedProducts.map(product => {
             return addContactProducts({
                 contactId: this.contactId,
                 accountId: this.account,
@@ -404,7 +426,15 @@ export default class SalesComponent extends LightningElement {
                     })
                     
                 );
-                // location.reload();
+
+                this.products = [];
+                this.laptopRows = [];
+                this.generalDeviceRows = [];
+                this.laptops = [];
+                this.generalDevices = [];
+
+                
+
             })
             .catch(error => {
                 // 주문 생성 중 오류가 발생한 경우
@@ -416,6 +446,11 @@ export default class SalesComponent extends LightningElement {
                         variant: 'error'
                     })
                 );
+                this.products = [];
+                this.laptopRows = [];
+                this.generalDeviceRows = [];
+                this.laptops = [];
+                this.generalDevices = [];
             });
         } else {
             // 주문할 제품이 없는 경우
@@ -428,6 +463,27 @@ export default class SalesComponent extends LightningElement {
             );
         }
     }
+
+    handleMouseover(event) {
+        console.log(this.recordId);
+        this.objRecordId = null
+        const toolTipDiv = this.template.querySelector('div.ModelTooltip');
+        toolTipDiv.style.opacity = 1;
+        toolTipDiv.style.display = "block";
+        // eslint-disable-next-line
+        window.clearTimeout(this.delayTimeout);
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        this.delayTimeout = setTimeout(() => {
+            this.objRecordId = this.recordId;
+        }, 50);
+    }
+
+    handleMouseout() {
+        const toolTipDiv = this.template.querySelector('div.ModelTooltip');
+        toolTipDiv.style.opacity = 0;
+        toolTipDiv.style.display = "none";
+    }
+    
 }
   
 

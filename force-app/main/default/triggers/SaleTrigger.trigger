@@ -5,6 +5,7 @@ trigger SaleTrigger on Sale__c (before insert, after insert, before update) {
         }
         if(Trigger.isAfter){
             SaleTriggerHandler.updateContactProductSalesId(Trigger.new);
+            //SaleTriggerHandler.insertSalesProduct(Trigger.new);
         }
     }
 

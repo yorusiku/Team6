@@ -1,52 +1,17 @@
 public with sharing class VOCController {
-    
-    @AuraEnabled
-    public static List<LookupSearchResult> searchLookupRecords(String searchTerm, List<String> selectedIds,String sObjectName, String field, String subField,Integer maxResults) {
-        List<LookupSearchResult> results = new List<LookupSearchResult>();
-        
-        String strQuery = 'SELECT Id, '+field + (String.isNotBlank(subField) ? ' ,'+subField : '')+' FROM '+sObjectName;
-        strQuery += ' WHERE '+field+' LIKE \'' + searchTerm + '%\' AND ';  
-        strQuery += ' Id NOT IN :selectedIds ORDER BY '+field+' LIMIT :maxResults';
-        
-        List<sObject> searchResults = Database.query(strQuery);   
-        if(searchResults != NUll && !searchResults.isEmpty()){
-            for(sObject sObj : searchResults){
-                LookupSearchResult res = new LookupSearchResult();
-                res.Id = sObj.Id;
-                res.title = String.valueOf(sObj.get(field));
-                if(String.isNotBlank(subField) && sObj.get(subField) != NULL){
-                    res.subtitle = String.valueOf(sObj.get(subField));
-                }else{
-                    res.subtitle = sObjectName;
-                }
-                results.add(res);
-            } 
+    @AuraEnabled(cacheable=true)
+    public static List<Contact> searchCustomers(String phoneNumber) {
+        // 전화번호에서 숫자만 남기고 공백 제거
+        String formattedPhoneNumber = phoneNumber.replaceAll('\\D', '');
+        String phoneNumberPattern = formattedPhoneNumber + '%';
+
+        List<Contact> query = new List<Contact>();
+
+        if (formattedPhoneNumber.length() >= 10) { // 최소 10자리 이상
+            query = [SELECT Id, Name, Phone, Email, Type__c FROM Contact WHERE Phone LIKE :phoneNumberPattern AND Type__c = 'Purchase'];
+            System.debug(query);
         }
-        return results;        
-    }
-    
-    @AuraEnabled
-    public static LookupSearchResult getRecentlyCreatedRecord(String sObjectName, String recordId, String field, String subField) {
-        LookupSearchResult result = new LookupSearchResult();
-        String strQuery = 'SELECT Id, '+field + (String.isNotBlank(subField) ? ' ,'+subField : '')+' FROM '+sObjectName +' WHERE Id =:recordId LIMIT 1';
-        List<sObject> searchResults = Database.query(strQuery);   
-        if(searchResults != NUll && !searchResults.isEmpty()){
-            sObject sObj = searchResults.get(0);
-            LookupSearchResult res = new LookupSearchResult();
-            result.Id = sObj.Id;
-            result.title = String.valueOf(sObj.get(field));
-            if(String.isNotBlank(subField) && sObj.get(subField) != NULL){
-                result.subtitle = String.valueOf(sObj.get(subField));
-            }else{
-                result.subtitle = sObjectName;
-            }
-        }
-        return result;        
-    }
-    
-    public class LookupSearchResult {
-        @AuraEnabled public Id id{get;set;}
-        @AuraEnabled public String title{get;set;}
-        @AuraEnabled public String subtitle{get;set;}
+
+        return query;
     }
 }

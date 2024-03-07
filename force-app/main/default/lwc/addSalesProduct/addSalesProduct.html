@@ -1,0 +1,37 @@
+<template>
+    <lightning-card title="고객제품주문" icon-name="custom:custom18">
+        <div class="slds-card__body slds-card__body_inner">
+            <template if:true={contactProducts}>
+                <lightning-input type="search"
+                    onchange={handleSearchTermChange}
+                    variant="label-hidden"
+                    class="slds-var-m-bottom_small"
+                    label="Search"
+                    placeholder="주문코드를 입력하세요"
+                    value={searchTerm}>
+                </lightning-input>
+                <lightning-button-group class="slds-m-top_small">
+                    <lightning-button label="판매제품 등록" onclick={handleSave}></lightning-button>
+                </lightning-button-group>
+                <template if:true={contactProducts}>
+                    <lightning-datatable
+                        key-field="contactProductId"
+                        data={contactProducts}
+                        columns={columns}
+                        hide-checkbox-column
+                    ></lightning-datatable>
+                    <template if:false={hasResults}>
+                        <div class="slds-align_absolute-center slds-var-m-vertical_small">
+                            등록하고자 하는 고객제품주문건이 없습니다.
+                        </div>
+                    </template>
+                </template>
+                <template if:true={error}>
+                    <div class="slds-text-color_error">
+                        {error.message}
+                    </div>
+                </template>
+            </template>
+        </div>
+    </lightning-card>
+</template>
