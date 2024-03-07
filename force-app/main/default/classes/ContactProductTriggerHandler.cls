@@ -172,7 +172,6 @@ public with sharing class ContactProductTriggerHandler {
             // 현재 날짜와 비교할 Date 변수 설정
             Integer year = Date.today().year();
             Integer month = Date.today().month();
-            Date firstDayOfWeek = Date.today().toStartOfWeek();
             Integer daily = Date.today().day();
             // 필요한 Account 레코드 조회
             Map<Id, Account> accountMap = new Map<Id, Account>([
@@ -183,11 +182,14 @@ public with sharing class ContactProductTriggerHandler {
                 FROM Account
                 WHERE Id IN :accountIds
                 ]);
-                
+                // Set<Id> accountIds = new Set<Id>();
+            for (Contact_Products__c cp : contactProducts) {
+                accountIds.add(cp.Account__c);
+            }
                 // 각 Account의 총 판매액 업데이트 + 초기화
                 for (Contact_Products__c cp : contactProducts) {
-                    
-                    if (accountMap.containsKey(cp.Account__c)) {
+                    if(cp.Status__c == 'Purchased') { // 제품이 '환불'일 경우 값 변동 X
+                        if (accountMap.containsKey(cp.Account__c)) {
                         Account acc = accountMap.get(cp.Account__c);
                         // 총매출액 구하기
                         if(acc.Total_Sales__c == null) {
@@ -207,7 +209,6 @@ public with sharing class ContactProductTriggerHandler {
                         } else {
                             acc.Total_Laptop_Sales__c += cp.Total_Purchase_of_Laptops__c;
                         }
-                        
                         //날짜가 null || 다르면 값을 갱신 매출액 초기화
                         if(acc.LastYearlyUpdate__c == null || acc.LastYearlyUpdate__c != year) {
                             acc.Annual_Sales__c = cp.Total_Purchase__c;
@@ -221,18 +222,13 @@ public with sharing class ContactProductTriggerHandler {
                         } else {
                             acc.Monthly_Sales__c += cp.Total_Purchase__c;
                         }
-                        if(acc.LastWeeklyUpdate__c == null || acc.LastWeeklyUpdate__c != firstDayOfWeek) {
-                            acc.Weekly_Sales__c = cp.Total_Purchase__c;
-                            acc.LastWeeklyUpdate__c = firstDayOfWeek;
-                        } else {
-                            acc.Weekly_Sales__c += cp.Total_Purchase__c;
-                        }
                         if(acc.LastDailyUpdate__c == null || acc.LastDailyUpdate__c != daily) {
                             acc.Daily_Sales__c = cp.Total_Purchase__c;
                             acc.LastDailyUpdate__c = daily;
                         } else {
                             acc.Daily_Sales__c += cp.Total_Purchase__c;
                         }
+                    }
                 }
             }
             // 업데이트된 Account 레코드 저장
