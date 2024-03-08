@@ -1,7 +1,28 @@
 public with sharing class SalesProductTriggerHandler {
-    //용재 0307 ToDo
     // 판매된제품 입력되고 나서 고객주문제품에 	Is_SaleProduct_Created__c true로 바꿔주고 업데이트해주는 trigger 만들기
+    public static void updateIsSalesProductCheckedToTrue(List<Sales_Product__c> salesProducts){
+        System.debug('updateIsSalesProductCheckedToTrue 실행::');
+        Set<String> orderCode = new Set<String>();
+        List<contact_Products__c> contactProductsToUpdate = new List<Contact_Products__c>();
+        
+        for(sales_Product__c pc : [SELECT Id, Contact_Products__r.Order_Code__c FROM Sales_Product__c WHERE Id IN :salesProducts]){
+            orderCode.add(pc.Contact_Products__r.Order_Code__c);
+        }
+        System.debug('orderCode::' + orderCode);
 
+        for(contact_Products__c cp : [SELECT Id, Order_Code__c, Is_SaleProduct_Created__c
+                                      FROM Contact_Products__c 
+                                      WHERE Order_Code__c IN :orderCode]){
+            cp.Is_SaleProduct_Created__c = true;
+            contactProductsToUpdate.add(cp);
+            System.debug('contactProductsToUpdate::' + contactProductsToUpdate);
+        }
+
+        if(contactProductsToUpdate.size() > 0) {
+            System.debug('contactProductsToUpdate::' + contactProductsToUpdate);
+            update contactProductsToUpdate;
+        }
+    }
 }
 
 

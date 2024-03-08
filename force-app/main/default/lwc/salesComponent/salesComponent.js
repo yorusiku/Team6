@@ -1,5 +1,6 @@
 import { LightningElement, wire, track, api } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { RefreshEvent } from 'lightning/refresh';
 import getAccounts from '@salesforce/apex/AccountController.getAccounts';
 import getLaptopProducts from '@salesforce/apex/ProductController.getLaptopProducts';
 import getGeneralDeviceProducts from '@salesforce/apex/ProductController.getGeneralDeviceProducts';
@@ -55,6 +56,7 @@ export default class SalesComponent extends LightningElement {
 
     // 페이지 로드 시 contactId 값에 값을 recordId 할당.
     connectedCallback() {
+        this.orderDateTime = new Date().toISOString();
         this.contactId = this.recordId;
         this.generalDeviceRows = [];
         this.laptopRows = [];
@@ -79,6 +81,7 @@ export default class SalesComponent extends LightningElement {
         const newRowId = this.generateId();
         this.laptopRows.push({ id: newRowId });
         this.updateProduct('laptop', '', 0);
+
     }
 
     addNewGeneralDeviceRow(index) {
@@ -122,6 +125,7 @@ export default class SalesComponent extends LightningElement {
             this.laptopQuantity = 0;
             this.removeLatestProductByType('laptop'); // laptop에 해당하는 행 제거
             console.log(this.laptopRows);
+            this.calculateTotalPrice();
         } else {
             this.dispatchEvent(
                 new ShowToastEvent({
@@ -140,6 +144,7 @@ export default class SalesComponent extends LightningElement {
             this.generalDeviceQuantity = 0;
             this.removeLatestProductByType('generalDevice'); // generalDevice에 해당하는 행 제거
             console.log(this.generalDeviceRows);
+            this.calculateTotalPrice();
         } else {
             this.dispatchEvent(
                 new ShowToastEvent({
@@ -286,6 +291,7 @@ export default class SalesComponent extends LightningElement {
                 type: type,
                 productId: productId,
                 quantity: quantity,
+            
             };
     
             // 중복된 productId를 가진 오래된 배열 찾기
@@ -330,7 +336,7 @@ export default class SalesComponent extends LightningElement {
     handleLaptopSelection(event, rowid) {
         const newLaptop = event.detail.value;
         this.laptop = newLaptop;
-        this.productRecordId = this.laptop.productId
+
         // this.updateProduct('laptop', newLaptop, this.laptopQuantity);
     }
     // 선택한 노트북 수량 값을 가져옴 
@@ -357,7 +363,10 @@ export default class SalesComponent extends LightningElement {
     // 선택한 주문 날짜 값을 가져옴 
     handleOrderDateTimeSelection(event){
         const selectedDateTimeString = event.target.value;
-        this.orderDateTime = new Date(selectedDateTimeString).toISOString();
+        // console.log(JSON.parse(JSON.stringify(event.target.value)));
+        console.log(JSON.parse(JSON.stringify(new Date())));
+
+        // this.orderDateTime = new Date().toISOString();
     }
 
       // 선택한 할인율을 가져옴 
@@ -378,6 +387,23 @@ export default class SalesComponent extends LightningElement {
       }  
 
 
+
+      
+    afterFinished() {
+        this.dispatchEvent(new RefreshEvent());
+
+        this.products = [];
+        this.laptopRows = [];
+        this.generalDeviceRows = [];
+        this.laptops = [];
+        this.generalDevices = [];            
+        this.contactId;
+        this.account = '';
+        this.accounts = [];
+        this.laptop = '';
+
+    }
+    
       // 고객 제품 주문 생성 
     addContactProducts() {
         const uniqueProducts = this.products.reduce((acc, current) => {
@@ -388,6 +414,7 @@ export default class SalesComponent extends LightningElement {
                 return acc;
             }
         }, []);
+
 
     // 주문 처리
     if (uniqueProducts.length > 0) {
@@ -414,28 +441,23 @@ export default class SalesComponent extends LightningElement {
             });
         });
 
+
+
         // 모든 주문을 처리하는 Promise
         Promise.all(promises)
             .then(() => {
-                // 주문이 성공적으로 완료된 경우
-                this.dispatchEvent(
-                    new ShowToastEvent({
-                        title: 'Success',
-                        message: '주문이 성공적으로 접수되었습니다. 감사합니다 :)',
-                        variant: 'success'
-                    })
-                    
-                );
-
-                this.products = [];
-                this.laptopRows = [];
-                this.generalDeviceRows = [];
-                this.laptops = [];
-                this.generalDevices = [];
-
-                
-
-            })
+                        this.dispatchEvent(
+                        new ShowToastEvent({
+                            title: '주문 완료',
+                            message: '3초후 새로고침 됩니다',
+                            variant: 'success'
+                        })
+                    );
+                    setTimeout(() => {
+                        location.reload();
+                    }, 3000);
+            
+                                })
             .catch(error => {
                 // 주문 생성 중 오류가 발생한 경우
                 console.error('Error creating records:', error);
@@ -446,15 +468,10 @@ export default class SalesComponent extends LightningElement {
                         variant: 'error'
                     })
                 );
-                this.products = [];
-                this.laptopRows = [];
-                this.generalDeviceRows = [];
-                this.laptops = [];
-                this.generalDevices = [];
             });
         } else {
             // 주문할 제품이 없는 경우
-            this.dispatchEvent(
+            this.dispatchEvent( 
                 new ShowToastEvent({
                     title: 'Warning',
                     message: '주문할 제품을 선택하세요.',
@@ -462,27 +479,10 @@ export default class SalesComponent extends LightningElement {
                 })
             );
         }
+        afterFinished();
     }
 
-    handleMouseover(event) {
-        console.log(this.recordId);
-        this.objRecordId = null
-        const toolTipDiv = this.template.querySelector('div.ModelTooltip');
-        toolTipDiv.style.opacity = 1;
-        toolTipDiv.style.display = "block";
-        // eslint-disable-next-line
-        window.clearTimeout(this.delayTimeout);
-        // eslint-disable-next-line @lwc/lwc/no-async-operation
-        this.delayTimeout = setTimeout(() => {
-            this.objRecordId = this.recordId;
-        }, 50);
-    }
 
-    handleMouseout() {
-        const toolTipDiv = this.template.querySelector('div.ModelTooltip');
-        toolTipDiv.style.opacity = 0;
-        toolTipDiv.style.display = "none";
-    }
     
 }
   

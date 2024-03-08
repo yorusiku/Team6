@@ -210,7 +210,6 @@ public with sharing class ContactProductController {
                 WHERE Status__c = 'Purchased'
                 AND Is_SaleProduct_Created__c = false
                 AND Order_Code__c LIKE :searchTerm 
-                WITH SECURITY_ENFORCED
                 ORDER BY CreatedDate DESC ];
     }
 
@@ -221,7 +220,6 @@ public with sharing class ContactProductController {
             FROM Contact_Products__c 
             WHERE Is_SaleProduct_Created__c = false
             AND Status__c = 'Purchased'
-            WITH SECURITY_ENFORCED
             ORDER BY CreatedDate DESC
             LIMIT 10
         ];

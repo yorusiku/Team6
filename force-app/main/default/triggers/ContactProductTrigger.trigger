@@ -7,6 +7,7 @@ trigger ContactProductTrigger on Contact_Products__c (before insert,before updat
             ContactProductTriggerHandler.InsertAccountSalesInformationSale(Trigger.new);
         }
     }
+
     if(Trigger.isUpdate){
         if(Trigger.isBefore){
             ContactProductTriggerHandler.UpdatePurchaseStoreAndDateInContact(Trigger.new);

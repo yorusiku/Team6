@@ -16,7 +16,7 @@ private class ContactControllerTest {
         
         
         for (Integer i = 0; i < testContacts.size(); i++) {
-            System.assertEquals(cts[i].Name, testContacts[i].FirstName + ' '+ testContacts[i].LastName, 'Contact names do not match');
+            System.assertEquals(cts[i].Name,  testContacts[i].LastName + Constants.BLANK_STRING + testContacts[i].FirstName, Constants.CONTACT_NAME_ASSERTION_MESSAGE);
         }
     } 
 }

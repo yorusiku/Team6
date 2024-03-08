@@ -1,7 +1,12 @@
-import { api, LightningElement } from 'lwc';
+import { api, LightningElement ,wire,track} from 'lwc';
 
 const TILE_WRAPPER_SELECTED_CLASS = 'tile-wrapper selected';
 const TILE_WRAPPER_UNSELECTED_CLASS = 'tile-wrapper';
+import NAME_FIELD from '@salesforce/schema/Product2.Name';
+import DESCRIPTION_FIELD from '@salesforce/schema/Product2.Description';
+// import PHONE_FIELD from '@salesforce/schema/Account.Phone';
+// import ANNUALREVENUE_FIELD from '@salesforce/schema/Account.AnnualRevenue';
+// import ACCOUNT_OBJECT from '@salesforce/schema/Account';
 
 export default class ProductTile extends LightningElement {
     @api product;
@@ -10,6 +15,16 @@ export default class ProductTile extends LightningElement {
     @api selectedProductId;
     @api selectedNotebookProductId;
     @api selectedGeneralDeviceProductId;
+    @track objRecordId = ''
+    @track fields = [
+
+        NAME_FIELD
+        
+    ];
+
+
+
+
 
     get backgroundStyle() {
         let backgroundImageUrl;
@@ -35,6 +50,7 @@ export default class ProductTile extends LightningElement {
     }
     
     selectProduct() {
+
         let displayedProduct;
 
         if (this.product && this.product.Id === this.selectedProductId) {
@@ -60,16 +76,47 @@ export default class ProductTile extends LightningElement {
             this.selectedGeneralDeviceProductId = this.generalDeviceProduct.Id;
             displayedProduct = this.generalDeviceProduct;
         }
-    
+
+        // fields = [
+        //     Name,
+        //     Family,
+        //     Price__c,
+        //     ProductCode
+        // ]
+
+
+        this.objRecordId = this.selectedProductId;
+        console.log(this.objRecordId);
+        const toolTipDiv = this.template.querySelector('div.ModelTooltip');
+        toolTipDiv.style.opacity = 1;
+        toolTipDiv.style.display = "block";
+        // eslint-disable-next-line
+        window.clearTimeout(this.delayTimeout);
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        this.delayTimeout = setTimeout(() => {
+            this.objRecordId = this.selectedProductId;
+        }, 50);
+
+
         const productselect = new CustomEvent('productselect', {
+            
             detail: {
                 productId: this.selectedProductId,
                 notebookProductId: this.selectedNotebookProductId,
                 generalDeviceProductId: this.selectedGeneralDeviceProductId 
-            }
+            },
         });
     
-        this.dispatchEvent(productselect);
+        fields = [
+            Name,
+            Family,
+            Price__c,
+            ProductCode
+        ]
+
+        this.dispatchEvent(new productselect);
+
+
     }
 
     handleProductSelect() {
@@ -82,5 +129,16 @@ export default class ProductTile extends LightningElement {
 
     handleGeneralDeviceProductSelect() {
         this.selectProduct();
+    }
+
+
+    handleMouseover(event) {
+
+    }
+
+    handleMouseout() {
+        const toolTipDiv = this.template.querySelector('div.ModelTooltip');
+        toolTipDiv.style.opacity = 0;
+        toolTipDiv.style.display = "none";
     }
 }

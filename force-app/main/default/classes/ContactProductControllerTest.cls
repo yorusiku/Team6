@@ -15,7 +15,6 @@ private class ContactProductControllerTest {
         testProductTypeId = testContactProducts[0].Product__c;
         recordSize = testContactProducts.size();
         testorderDate = testContactProducts[0].Order_Date_Time__c;
-        //testOrderCode = testContactProducts[0].Order_Code__c;
 
         Test.startTest();
         ContactProductController.addContactProducts(testContactId, testAccountId, testProductTypeId, 1, '', 0 , testorderDate, 5);
@@ -25,13 +24,11 @@ private class ContactProductControllerTest {
                                          FROM Contact_Products__c];
 
         for(Contact_Products__c cp : cps) {
-            //System.assertEquals(recordSize, cps.size(), 'Incorrect number of records created.');
             System.assertEquals(testContactId, cp.Contact__c, 'Incorrect contact ID.');
             System.assertEquals(testAccountId, cp.Account__c, 'Incorrect account ID.');
             System.assertEquals(testProductTypeId, cp.Product__c, 'Incorrect product type ID.');
             System.assertEquals(5, cp.Discount_Percent__c, 'Incorrect discount percentage.');
             System.assertEquals(testorderDate, cp.Order_Date_Time__c, 'Incorrect order date time.');
-            //System.assertEquals(testOrderCode, cp.Order_Code__c, 'Incorrect order code.');
         }
     }
 
@@ -118,14 +115,11 @@ private class ContactProductControllerTest {
         String testProductName = '';
 
         Contact testContact = [SELECT Id, Total_Purchase_Amount__c, Due_Date_90Days__c, Total_Purchase_of_Laptops__c, Total_Purchase_of_General_Devices__c, List_of_purchased_items__c  FROM Contact WHERE Id = :testContactProducts[0].Contact__c LIMIT 1];
-        //testContact.Total_Purchase_Amount__c = 1900000;
-        //update testContact;
 
         List<Contact> testContacts = [SELECT Id, Name, Customer_Tier__c, Purchase_In_Recent_90Days__c, Total_Purchase_Amount__c, Total_Purchase_of_General_Devices__c, Total_Purchase_of_Laptops__c, List_of_purchased_items__c, Due_Date_90Days__c, Latest_Purchase_Date__c FROM Contact WHERE RecordTypeId = :Constants.CUSTOMER_RECORD_TYPE_ID];
 
         testContactProducts = [SELECT Id, Name, Total_Purchase__c, Total_Purchase_of_Laptops__c, Total_Purchase_of_General_Devices__c, 	Product_Name_Text__c 
                                FROM Contact_Products__c];
-        System.debug('testContactProducts::' + testContactProducts);
 
         Test.startTest();
         testTotalCustomerPurchase = ContactProductController.getCustomerTotalPurchase(testContact);
@@ -136,12 +130,7 @@ private class ContactProductControllerTest {
         Database.QueryLocator queryLocator = batch.start(null);
         batch.execute(null, testContacts);
         batch.finish(null);
-        System.debug('testContacts after batch execute::' + testContacts);
         Test.stopTest();
-        System.debug('testTotalCustomerPurchase::' + testTotalCustomerPurchase);
-        System.debug('testTotalNoteBookPurchase::' + testTotalNoteBookPurchase);
-        System.debug('testTotalGeneralDevicePurchase::' + testTotalGeneralDevicePurchase);
-
 
         System.assertEquals(testTotalCustomerPurchase, testContacts[0].Total_Purchase_Amount__c, 'Incorrect Total Purchase.');
         System.assertEquals(testTotalNoteBookPurchase, testContacts[0].Total_Purchase_of_Laptops__c, 'Incorrect Total Laptop Purchase.');
@@ -170,9 +159,7 @@ private class ContactProductControllerTest {
             testSalesCode.add('S'+ cp.Order_Code__c);
         }
 
-
-        System.debug('testUpdateSale testContactProducts::' + testContactProducts);
-        
+    
         Test.startTest();
         testSalesCode = ContactProductController.getSalesCode(testContactProducts); 
 
@@ -201,5 +188,45 @@ private class ContactProductControllerTest {
         System.assertEquals(testDiscountAmount, updatedSales[0].Discount_Value__c, 'Incorrect discount Value.');
         System.assertEquals(testFinalPirce, updatedSales[0].Final_Price__c, 'Incorrect final Price.');
         System.assertEquals(testDiscontPercent, updatedSales[0].Discount_Percent__c, 'Incorrect discount percentage.');
+    }
+
+    @isTest
+    private static void testAddSalesProduct(){
+        List<Contact_Products__c> testContactProducts = TestDataFactory.createContactProducts(3, 5, Datetime.now());
+        String testordercode = '';
+        String testsearchTerm =  '';
+        for(Contact_Products__c cp : [SELECT Id, Order_Code__c 
+                                     FROM Contact_Products__c]){
+            testordercode = cp.Order_Code__c ;
+            System.debug('cp::' + cp);
+        }
+        
+
+        Test.startTest();
+        testContactProducts = ContactProductController.searchContactProductsByOrderCode(testsearchTerm);        
+
+        testsearchTerm = '%' + testordercode + '%';
+        testContactProducts = ContactProductController.searchContactProductsByOrderCode(testsearchTerm); 
+        List<Sales_Product__c> salesProductsToInsert = new List<Sales_Product__c>();
+        ContactProductController.addSalesProduct(testsearchTerm);
+      
+        for(Contact_Products__c cp: [SELECT Id, Order_Code__c 
+                                    FROM Contact_Products__c
+                                    WHERE Order_Code__c = :testordercode]){
+            Sales_Product__c testsp = new Sales_Product__c();
+            testsp.Serial_Number__c = ContactProductController.generateRandomString(16);
+            testsp.Contact_Products__c = cp.Id;
+            salesProductsToInsert.add(testsp);
+        }
+
+        insert salesProductsToInsert;
+        Test.stopTest();
+        
+        List<Sales_Product__c> pcList = [SELECT Id, Serial_Number__c, Contact_Products__c, Contact_Products__r.Id, Contact_Products__r.Order_Code__c FROM Sales_Product__c];
+
+        for(Sales_Product__c pc : pcList){
+            System.assertEquals(testContactProducts[0].Id, pcList[0].Contact_Products__c, 'Incorrect Id');
+            System.assertEquals(testordercode, pcList[0].Contact_Products__r.Order_Code__c, 'Incorrect Ordercode.');
+        }
     }
 }

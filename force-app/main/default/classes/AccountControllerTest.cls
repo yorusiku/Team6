@@ -13,7 +13,7 @@ private class AccountControllerTest {
         Test.stopTest();
         
         for (Integer i = 0; i < testAccounts.size(); i++) {
-            System.assertEquals(accts[i].Name, testAccounts[i].Name, 'Account names do not match');
+            System.assertEquals(accts[i].Name, testAccounts[i].Name, Constants.TESTGETACCOUNTS_ACCOUNT_ASSERTION_MESSAGE);
         }
     }  
 }

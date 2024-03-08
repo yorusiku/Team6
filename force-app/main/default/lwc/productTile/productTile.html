@@ -27,5 +27,32 @@
                 <div class="slds-text-body_small">제품코드: {generalDeviceProduct.ProductCode}</div>
             </template>
         </div>
-    </div>
+
+
+    
+
+            <lightning-record-view-form if:true={objRecordId}
+            record-id={objRecordId}
+            object-api-name="Product2">
+                <section style=" position:absolute; opacity:1"  class="slds-popover slds-popover_panel slds-nubbin_top-left">
+                    <div class="slds-popover__header">
+                        <header>
+                            <h2 class="slds-text-heading_medium ">제품 정보</h2>
+                        </header>
+                    </div>
+                    <div class="slds-popover__body">
+                        <lightning-output-field field-name="Name">
+                        </lightning-output-field>
+                        <lightning-output-field field-name="Description">
+                        </lightning-output-field>
+                        <lightning-output-field field-name="Price__c">
+                        </lightning-output-field>
+                    </div>
+                </section>
+            </lightning-record-view-form>
+        </div>
+
+
+
+
 </template>

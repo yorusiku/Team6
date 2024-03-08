@@ -7,7 +7,6 @@ public with sharing class ProductController {
     public static List<Product2> getProducts() {
         return [SELECT Id, Name, ProductCode, Family, Price__c, Image__c
                 FROM Product2
-                WITH SECURITY_ENFORCED
                 ORDER BY Family];
     }
 
@@ -19,7 +18,6 @@ public with sharing class ProductController {
         return [SELECT Id, Name, ProductCode, Family, Price__c, Image__c
                 FROM Product2
                 WHERE Family = :Constants.NOTEBOOK 
-                WITH SECURITY_ENFORCED
                 ORDER BY Name];
     }
     
@@ -31,7 +29,6 @@ public with sharing class ProductController {
         return [SELECT Id, Name, ProductCode, Family, Price__c, Image__c
                 FROM Product2
                 WHERE Family = :Constants.GENENRAL_DEVICE  
-                WITH SECURITY_ENFORCED
                 ORDER BY Name];
     }
 }

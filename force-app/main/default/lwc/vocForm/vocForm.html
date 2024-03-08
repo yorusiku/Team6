@@ -1,23 +1,37 @@
 <template>
-  <lightning-card title="고객 검색">
-      <lightning-input type="text" label="전화번호 (앞 3자리)" value={formattedPhoneNumber} onchange={handlePhoneChange}></lightning-input>
-      <lightning-button label="검색" onclick={searchCustomers}></lightning-button>
-      <template if:true={searchResults}>
-          <lightning-datatable
-              key-field="Id"
-              data={searchResults}
-              columns={columns}
-              onrowaction={handleRowAction}>
-          </lightning-datatable>
-      </template>
-      <template if:true={selectedCustomer}>
-          <div>
-              <p>선택된 고객:</p>
-              <p>{selectedCustomer.Name}</p>
-              <p>{selectedCustomer.Phone}</p>
-              <p>{selectedCustomer.Email}</p>
-              <p>{selectedCustomer.Type__c}</p>
-          </div>
-      </template>
-  </lightning-card>
+    <lightning-card title="전화번호로 고객을 검색하세요." icon-name="standard:contact">
+        <div class="slds-card__body slds-card__body_inner">
+            <!-- 전화번호 입력 필드 -->
+            <lightning-input type="search" label="고객 핸드폰 번호를 입력하세요" value={phoneNumberPattern} onchange={handlePhoneChange} class="slds-var-m-bottom_small"></lightning-input>
+            <!-- 검색 버튼 -->
+            <lightning-button label="검색" onclick={searchCustomers} disabled={isSearchDisabled}></lightning-button>
+            <!-- 결과 닫기 버튼 -->
+            <lightning-button label="닫기" onclick={closeResults} variant="neutral" class="slds-var-m-left_small" if:true={searchResults}></lightning-button>
+            <template if:true={searchResults}>
+                <div class="slds-var-m-top_medium">
+                    <template if:true={searchResults.length}>
+                        <!-- 검색 결과를 표시하는 데이터 테이블 -->
+                        <lightning-datatable
+                            key-field="Id"
+                            data={searchResults}
+                            columns={columns}
+                            onrowaction={handleRowAction}
+                            hide-checkbox-column
+                        ></lightning-datatable>
+                    </template>
+                    <!-- 검색 결과가 없을 경우 -->
+                    <template if:false={searchResults.length}>
+                        <div>검색 결과가 없습니다.</div>
+                    </template>
+                    <!-- 페이지네이션 버튼 -->
+                    <div class="slds-var-m-top_small">
+                        <lightning-button-group>
+                            <lightning-button label="이전" onclick={previousPage} disabled={isFirstPage}></lightning-button>
+                            <lightning-button label="다음" onclick={nextPage} disabled={isLastPage}></lightning-button>
+                        </lightning-button-group>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
 </template>

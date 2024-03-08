@@ -1,17 +1,21 @@
 public with sharing class VOCController {
     @AuraEnabled(cacheable=true)
-    public static List<Contact> searchCustomers(String phoneNumber) {
-        // 전화번호에서 숫자만 남기고 공백 제거
-        String formattedPhoneNumber = phoneNumber.replaceAll('\\D', '');
-        String phoneNumberPattern = formattedPhoneNumber + '%';
+    public static Map<String, Object> searchCustomers(String phoneNumber, Integer pageNumber, Integer pageSize) {
+        Map<String, Object> result = new Map<String, Object>();
+        String phoneNumberPattern = '%' + phoneNumber + '%';
+        Integer offset = (pageNumber - 1) * pageSize;
 
-        List<Contact> query = new List<Contact>();
+        List<Sales_Product__c> queryResult = [
+            SELECT Id, Contact__c, CustomerNumber__c, Email__c, Product_Name_Text__c, Serial_Number__c, Account__c, Purchased_Date_Time_c__c
+            FROM Sales_Product__c
+            WHERE CustomerNumber__c LIKE :phoneNumberPattern AND Status__c = '판매'
+            ORDER BY Purchased_Date_Time_c__c DESC
+            LIMIT :pageSize OFFSET :offset
+        ];
 
-        if (formattedPhoneNumber.length() >= 10) { // 최소 10자리 이상
-            query = [SELECT Id, Name, Phone, Email, Type__c FROM Contact WHERE Phone LIKE :phoneNumberPattern AND Type__c = 'Purchase'];
-            System.debug(query);
-        }
-
-        return query;
+        System.debug('Query Result: ' + queryResult);
+        result.put('data', queryResult);
+        return result;
     }
+
 }

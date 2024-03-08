@@ -21,6 +21,7 @@
         <!-- 노트북 로우 버튼 -->
             <lightning-button  label="노트북 추가" onclick={addNewLaptopRow}></lightning-button>
             <lightning-button label="노트북 제거" onclick={deleteLastLaptopRow}></lightning-button>
+
         </div>
 
         <!-- 주변기기 로우들 -->
@@ -41,7 +42,9 @@
             <lightning-button  label="주변기기 제거" onclick={deleteLastGeneralDeviceRow}></lightning-button>
         </div>
 
-        <lightning-input type="datetime" label="주문날짜" value={orderDateTime} onchange={handleOrderDateTimeSelection}></lightning-input>
+        <lightning-helptext content="주문 시 자동 입력됩니다"></lightning-helptext>
+        <lightning-input type="datetime" label="주문날짜" value={orderDateTime} disabled="true"></lightning-input>
+
         <lightning-input placeholder="% 없이 숫자만 입력해주세요." type="number" label="할인율" onchange={handleDiscountRateChange}></lightning-input>
         
         <lightning-card title="제품 가격">
@@ -57,25 +60,7 @@
     </lightning-card>
 
 
-    <div>
-        <template if:true={recordId} >
-        <div style="position: absolute; opacity: 1" class="ModelTooltip">
-            <section class="slds-popover slds-popover_panel slds-nubbin_top-left" role="dialog">
-              <div class="slds-popover__header">
-                <header class="slds-media slds-media_center slds-m-bottom_small">
-                  <div class="slds-media__body">
-                    <h2 class="slds-text-heading_medium slds-hyphenate">제품 상세 정보</h2>
-                  </div>
-                </header>
-              </div>
-              <div class="slds-popover__body">
-                <lightning-record-form record-id ={productRecordId} object-api-name="Product2" layout-type="Compact" columns="1" mode="readonly"> 
-                </lightning-record-form>
-              </div>
-            </section>
-          </div>
-          </template>
-      </div>
+
 
         <!-- <p>This example creates a simple layout with field headers.</p>
     <div class="c-container">
@@ -102,6 +87,5 @@
             </lightning-layout-item>
         </lightning-layout>
     </div> -->
-
 
 </template>
