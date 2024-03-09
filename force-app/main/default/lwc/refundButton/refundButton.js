@@ -1,6 +1,9 @@
 import { updateRecord } from 'lightning/uiRecordApi';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { LightningElement, api } from 'lwc';
 export default class RefundButton extends LightningElement {
+    @api recordId;
+    
     handleRefund() {
         try {
             const fields = {};

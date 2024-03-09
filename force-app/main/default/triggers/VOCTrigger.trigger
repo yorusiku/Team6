@@ -1,12 +1,14 @@
-trigger VOCTrigger on VOC__c (after insert, after update, after delete) {
-  // 총 VOC 횟수 카운트 하는 트리거
-  if(Trigger.isAfter) {  
-      if (Trigger.isInsert || Trigger.isUpdate) {
-          VOCTriggerHandler.updateVOCCount(Trigger.new);
-      }
-    
-      if (Trigger.isDelete) {
-          VOCTriggerHandler.updateVOCCount(Trigger.old);
-      }
-  }
+trigger VOCTrigger on VOC__c (after insert, after update, after delete, after undelete) {
+    // Trigger.isAfter 조건은 모든 분기에 공통적이므로, 이를 최상위에서 한 번만 검사합니다.
+    if(Trigger.isAfter) {  
+        // insert 또는 update 이벤트가 발생했을 경우, Trigger.new 컬렉션을 사용합니다.
+        if (Trigger.isInsert || Trigger.isUpdate || Trigger.isUndelete) {
+            VOCTriggerHandler.updateVOCCount(Trigger.new);
+        }
+        
+        // delete 이벤트가 발생했을 경우, Trigger.old 컬렉션을 사용합니다.
+        if (Trigger.isDelete) {
+            VOCTriggerHandler.updateVOCCount(Trigger.old);
+        }
+    }
 }

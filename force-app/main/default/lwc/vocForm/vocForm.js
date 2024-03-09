@@ -83,11 +83,14 @@ export default class CustomerSearch extends NavigationMixin(LightningElement) {
         if (action.name === 'generateVOC') {
             // 선택된 Sales_Product__c ID를 사용하여 VOC__c 레코드 생성 페이지로 이동
             this.navigateToVOCRecordPage(row.Id);
+            console.log(row.Id);
         }
     }
 
-    // VOC__c 레코드 생성 페이지로 이동
+   // VOC__c 레코드 생성 페이지로 이동
     navigateToVOCRecordPage(salesProductId) {
+    
+        
         this[NavigationMixin.Navigate]({
             type: 'standard__objectPage',
             attributes: {
@@ -95,7 +98,7 @@ export default class CustomerSearch extends NavigationMixin(LightningElement) {
                 actionName: 'new'
             },
             state: {
-                defaultFieldValues: `Sales_Product__c=${salesProductId}` // Sales_Product__c 필드를 사전 채움
+                defaultFieldValues: `Sales_Product__c=${salesProductId}` // Sales_Product__c 필드 값 사전 채움
             }
         });
     }

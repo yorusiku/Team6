@@ -39,6 +39,12 @@ public with sharing class ContactPurchaseAmountBatch implements Database.Batchab
                     con.List_of_purchased_items__c = '';
                     contactListToUpdate.add(con);
                 }
+            }else if(!con.Purchase_In_Recent_90Days__c){
+                con.Total_Purchase_Amount__c = 0;
+                con.Total_Purchase_of_Laptops__c = 0;
+                con.Total_Purchase_of_General_Devices__c = 0;
+                con.List_of_purchased_items__c = '';
+                contactListToUpdate.add(con);
             }
         }
 
