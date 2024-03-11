@@ -254,16 +254,15 @@ public with sharing class ContactProductTriggerHandler {
                 FROM Account
                 WHERE Id IN :accountIds
                 ]);
-                // Set<Id> accountIds = new Set<Id>();
-            for (Contact_Products__c cp : contactProducts) {
-                accountIds.add(cp.Account__c);
-            }
+
                 // 각 Account의 총 판매액 업데이트 + 초기화
             for (Contact_Products__c cp : contactProducts) {
                 if (accountMap.containsKey(cp.Account__c)) {
                     Account acc = accountMap.get(cp.Account__c);
                 }
-
+                DateTime orderDateTime = cp.Order_Date_Time__c;
+                Date orderDate = orderDateTime.Date();
+                Integer orderInt = orderDate.day();
                 if(cp.Status__c == 'Refunded') { // 제품이 '구매'일 경우 값 변동 X
                     Account acc = accountMap.get(cp.Account__c);
                     // 총매출액 빼기
@@ -276,10 +275,10 @@ public with sharing class ContactProductTriggerHandler {
                     if(acc.LastYearlyUpdate__c == year) {
                         acc.Annual_Sales__c -= cp.Total_Purchase__c;
                     }
-                    if(acc.LastMonthlyUpdate__c == month) {
+                    if(acc.LastMonthlyUpdate__c == month && acc.LastYearlyUpdate__c == year) {
                         acc.Monthly_Sales__c -= cp.Total_Purchase__c;
                     }
-                    if(acc.LastDailyUpdate__c == daily) {
+                    if(orderInt == daily && acc.LastMonthlyUpdate__c == month && acc.LastYearlyUpdate__c == year) {
                         acc.Daily_Sales__c -= cp.Total_Purchase__c;
                     }
                 }

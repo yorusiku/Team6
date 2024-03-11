@@ -9,7 +9,7 @@ private class ContactControllerTest {
         Tier__c testTier = TestDataFactory.createTier(Constants.D_TIER, 0, 0);
         List<Contact> testContacts = TestDataFactory.createContacts(2, Constants.CUSTOMER_RECORD_TYPE_ID , Constants.CONTACT_TYPE_PURCHASE,
                                                                    Utility.getTierId(Constants.D_TIER), 0 , 0 , 0 , Date.today());
-
+        System.debug(testContacts);
         Test.startTest();
         List<Contact> cts = ContactController.getPurchaseCustomers();
         Test.stopTest();

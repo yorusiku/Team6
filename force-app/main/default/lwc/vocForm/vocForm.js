@@ -89,8 +89,6 @@ export default class CustomerSearch extends NavigationMixin(LightningElement) {
 
    // VOC__c 레코드 생성 페이지로 이동
     navigateToVOCRecordPage(salesProductId) {
-    
-        
         this[NavigationMixin.Navigate]({
             type: 'standard__objectPage',
             attributes: {

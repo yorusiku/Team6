@@ -24,7 +24,6 @@ export default class SalesComponent extends LightningElement {
   @track products = [];
   @track rowIndex = "";
   @track productRecordId = "";
-  @track containerStyle = "";
 
   @track totalPrice = {
     originalTotalPrice: 0,
@@ -50,27 +49,25 @@ export default class SalesComponent extends LightningElement {
     }
   ];
 
-  // 페이지 로드 시 contactId 값에 값을 recordId 할당
+  // 페이지 로드 시 contactId 값에 값을 recordId 할당.
   connectedCallback() {
+    this.orderDateTime = new Date().toISOString();
     this.contactId = this.recordId;
     this.generalDeviceRows = [];
     this.laptopRows = [];
-    window.addEventListener("scroll", this.handleScroll.bind(this));
-  }
 
-  disconnectedCallback() {
-    window.removeEventListener("scroll", this.handleScroll.bind(this));
-  }
+    // const existingLaptopRow = this.laptopRows[0];
+    // if (existingLaptopRow) {
+    //     existingLaptopRow.id = this.generateId();
+    //     this.currentLaptopRowId = existingLaptopRow.id;
+    // }
 
-  handleScroll() {
-    const scrollY = window.scrollY;
-    const container = this.template.querySelector(".scroll-container");
-    if (container) {
-      const isFixed = scrollY > 0.5 * window.innerHeight;
-      this.containerStyle = isFixed
-        ? `position: fixed; top: 175px; width:19%; height: 75%; overflow-y: auto;`
-        : "";
-    }
+    // // 주변기기 로우에 ID 부여
+    // const existingGeneralDeviceRow = this.generalDeviceRows[0];
+    // if (existingGeneralDeviceRow) {
+    //     existingGeneralDeviceRow.id = this.generateId();
+    //     this.currentGeneralDeviceRowId = existingGeneralDeviceRow.id;
+    // }
   }
 
   addNewLaptopRow(index) {
@@ -85,7 +82,7 @@ export default class SalesComponent extends LightningElement {
     this.updateProduct("generalDevice", "", 0);
   }
 
-  //행 삭제와 함께 추가된 물품 삭제
+  ////행 삭제와 함께 추가된 물품 삭제
   removeLatestProductByType(type) {
     console.log("Before removal:", JSON.parse(JSON.stringify(this.products)));
 
@@ -114,7 +111,7 @@ export default class SalesComponent extends LightningElement {
       const lastRowId = this.laptopRows.pop().id;
       this.laptop = "";
       this.laptopQuantity = 0;
-      this.removeLatestProductByType("laptop");
+      this.removeLatestProductByType("laptop"); // laptop에 해당하는 행 제거
       console.log(this.laptopRows);
       this.calculateTotalPrice();
     } else {
@@ -133,7 +130,7 @@ export default class SalesComponent extends LightningElement {
       const lastRowId = this.generalDeviceRows.pop().id;
       this.generalDevice = "";
       this.generalDeviceQuantity = 0;
-      this.removeLatestProductByType("generalDevice");
+      this.removeLatestProductByType("generalDevice"); // generalDevice에 해당하는 행 제거
       console.log(this.generalDeviceRows);
       this.calculateTotalPrice();
     } else {
@@ -192,13 +189,13 @@ export default class SalesComponent extends LightningElement {
     }
   }
 
-  // 노트북 로우의 제품 가격을 찾는 메소드
+  // 노트북 로우의 제품 가격을 찾는 함수
   getLaptopRowPrice(productId) {
     const filteredLaptop = this.laptops.find((item) => item.value === productId);
     return filteredLaptop ? filteredLaptop.price : 0;
   }
 
-  // 주변기기 로우의 제품 가격을 찾는 메소드
+  // 주변기기 로우의 제품 가격을 찾는 함수
   getGeneralDeviceRowPrice(productId) {
     const filteredGeneralDevice = this.generalDevices.find(
       (item) => item.value === productId
@@ -206,7 +203,7 @@ export default class SalesComponent extends LightningElement {
     return filteredGeneralDevice ? filteredGeneralDevice.price : 0;
   }
 
-  // totalPrice 계산 메소드
+  // totalPrice 계산 메서드
   calculateTotalPrice() {
     // 각 값이 존재하는지 확인
     if (
@@ -250,12 +247,14 @@ export default class SalesComponent extends LightningElement {
       const discount = this.discount || 0;
       const discountAmount = originalTotalPrice * (discount / 100);
       const discountedPrice = originalTotalPrice - discountAmount;
+
       const formattedOriginalTotalPrice = originalTotalPrice.toLocaleString();
       const formattedDiscountAmount = discountAmount.toLocaleString();
       const formattedDiscountedPrice = discountedPrice.toLocaleString();
       const formattedLaptopTotalPrice = laptopTotalPrice.toLocaleString();
       const formattedGeneralDeviceTotalPrice =
         generalDeviceTotalPrice.toLocaleString();
+
       this.totalPrice = {
         formattedOriginalTotalPrice,
         formattedGeneralDeviceTotalPrice,
@@ -270,7 +269,6 @@ export default class SalesComponent extends LightningElement {
     return this.calculateTotalPrice();
   }
 
-  // 물품을 추가하거나 기존 물품의 정보를 변경하는 메소드
   updateProduct(type, productId, quantity) {
     // 새로운 제품 추가
     if (productId && quantity) {
@@ -280,25 +278,29 @@ export default class SalesComponent extends LightningElement {
         quantity: quantity
       };
 
-      // 중복된 productId를 가진 존재하는 배열 찾기
+      // 중복된 productId를 가진 오래된 배열 찾기
       const oldProducts = this.products.filter(
         (item) => item.productId === productId
       );
 
-      // 이전 값이 존재하면 해당 배열에서 제거
+      // 이전 값이 존재하면 해당 배열에서 변경
       if (oldProducts.length > 0) {
         const updatedProducts = oldProducts.map((product) => {
           if (product.productId === productId && product.type === type) {
+            // productId와 type이 모두 일치하는 경우에만 quantity를 업데이트합니다.
             return {
               ...product,
               productId: productId,
               quantity: quantity
             };
+          } else {
+            console.log("productId or type does not match");
           }
           return product;
         });
+        // 여기서 updatedProducts 배열을 사용하거나 반환하면 됩니다.
 
-        // 기존 배열에서 수정된 항목을 제외하고 새 제품 추가
+        // 기존 배열에 새 제품 추가
         this.products = this.products
           .filter((item) => item.productId !== productId)
           .concat(updatedProducts);
@@ -320,9 +322,9 @@ export default class SalesComponent extends LightningElement {
   handleLaptopSelection(event, rowid) {
     const newLaptop = event.detail.value;
     this.laptop = newLaptop;
+
     // this.updateProduct('laptop', newLaptop, this.laptopQuantity);
   }
-
   // 선택한 노트북 수량 값을 가져옴
   handleLaptopQuantityCountChange(event) {
     this.laptopQuantity = isNaN(parseInt(event.target.value, 10))
@@ -353,9 +355,9 @@ export default class SalesComponent extends LightningElement {
   // 선택한 주문 날짜 값을 가져옴
   handleOrderDateTimeSelection(event) {
     const selectedDateTimeString = event.target.value;
-    console.log(JSON.parse(JSON.stringify(event.target.value)));
-    this.orderDateTime = new Date(selectedDateTimeString).toISOString();
-    console.log(JSON.parse(JSON.stringify(this.orderDateTime)));
+    // console.log(JSON.parse(JSON.stringify(event.target.value)));
+    console.log(JSON.parse(JSON.stringify(new Date())));
+
     // this.orderDateTime = new Date().toISOString();
   }
 
@@ -375,7 +377,6 @@ export default class SalesComponent extends LightningElement {
     this.calculateTotalPrice();
   }
 
-  // 초기화하는 메소드
   afterFinished() {
     this.dispatchEvent(new RefreshEvent());
 
@@ -392,7 +393,6 @@ export default class SalesComponent extends LightningElement {
 
   // 고객 제품 주문 생성
   addContactProducts() {
-    // 중복방지, 중복값 찾은 후 제외한 배열 생성
     const uniqueProducts = this.products.reduce((acc, current) => {
       const isDuplicate = acc.some(
         (item) => item.type === current.type && item.productId === current.productId
@@ -419,9 +419,10 @@ export default class SalesComponent extends LightningElement {
       laptopProducts.sort((a, b) => a.productId.localeCompare(b.productId));
       generalDeviceProducts.sort((a, b) => a.productId.localeCompare(b.productId));
 
-      const sortedProducts = laptopProducts.concat(generalDeviceProducts);
+      // 정렬된 배열 다시 합치기
+      const sortedAndMergedProducts = laptopProducts.concat(generalDeviceProducts);
 
-      const promises = sortedProducts.map((product) => {
+      const promises = sortedAndMergedProducts.map((product) => {
         return addContactProducts({
           contactId: this.contactId,
           accountId: this.account,
@@ -435,6 +436,7 @@ export default class SalesComponent extends LightningElement {
       });
 
       // 모든 주문을 처리하는 Promise
+
       Promise.all(promises)
         .then(() => {
           this.dispatchEvent(
@@ -444,11 +446,9 @@ export default class SalesComponent extends LightningElement {
               variant: "success"
             })
           );
-          location.reload();
-          // 3초후 새로고침
-          // setTimeout(() => {
-          //   location.reload();
-          // }, 3000);
+          setTimeout(() => {
+            location.reload();
+          }, 3000);
         })
         .catch((error) => {
           // 주문 생성 중 오류가 발생한 경우
@@ -471,8 +471,7 @@ export default class SalesComponent extends LightningElement {
         })
       );
     }
-    // 완료 후 초기화
-    // afterFinished();
+    afterFinished();
   }
 }
 
