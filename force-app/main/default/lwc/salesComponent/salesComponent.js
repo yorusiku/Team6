@@ -5,6 +5,13 @@ import getAccounts from "@salesforce/apex/AccountController.getAccounts";
 import getLaptopProducts from "@salesforce/apex/ProductController.getLaptopProducts";
 import getGeneralDeviceProducts from "@salesforce/apex/ProductController.getGeneralDeviceProducts";
 import addContactProducts from "@salesforce/apex/ContactProductController.addContactProducts";
+import { LightningElement, wire, track, api } from "lwc";
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import { RefreshEvent } from "lightning/refresh";
+import getAccounts from "@salesforce/apex/AccountController.getAccounts";
+import getLaptopProducts from "@salesforce/apex/ProductController.getLaptopProducts";
+import getGeneralDeviceProducts from "@salesforce/apex/ProductController.getGeneralDeviceProducts";
+import addContactProducts from "@salesforce/apex/ContactProductController.addContactProducts";
 
 export default class SalesComponent extends LightningElement {
   @api recordId;
@@ -35,6 +42,13 @@ export default class SalesComponent extends LightningElement {
     discountAmount: 0,
     discountedPrice: 0
   };
+  @track totalPrice = {
+    originalTotalPrice: 0,
+    laptopTotalPrice: 0,
+    generalDeviceTotalPrice: 0,
+    discountAmount: 0,
+    discountedPrice: 0
+  };
 
   //   @track accounts = ['', '', ''];
   keyIndex = 0;
@@ -58,7 +72,26 @@ export default class SalesComponent extends LightningElement {
     this.contactId = this.recordId;
     this.generalDeviceRows = [];
     this.laptopRows = [];
+  // 페이지 로드 시 contactId 값에 값을 recordId 할당.
+  connectedCallback() {
+    this.orderDateTime = new Date().toISOString();
+    this.contactId = this.recordId;
+    this.generalDeviceRows = [];
+    this.laptopRows = [];
 
+    // const existingLaptopRow = this.laptopRows[0];
+    // if (existingLaptopRow) {
+    //     existingLaptopRow.id = this.generateId();
+    //     this.currentLaptopRowId = existingLaptopRow.id;
+    // }
+
+    // // 주변기기 로우에 ID 부여
+    // const existingGeneralDeviceRow = this.generalDeviceRows[0];
+    // if (existingGeneralDeviceRow) {
+    //     existingGeneralDeviceRow.id = this.generateId();
+    //     this.currentGeneralDeviceRowId = existingGeneralDeviceRow.id;
+    // }
+  }
     // const existingLaptopRow = this.laptopRows[0];
     // if (existingLaptopRow) {
     //     existingLaptopRow.id = this.generateId();
@@ -211,6 +244,9 @@ export default class SalesComponent extends LightningElement {
   generateId() {
     return Math.random().toString(36);
   }
+  generateId() {
+    return Math.random().toString(36);
+  }
 
   // 모든 판매점을 데이터를 가져옴
   @wire(getAccounts)
@@ -224,7 +260,32 @@ export default class SalesComponent extends LightningElement {
       console.error("Error fetching accounts:", error);
     }
   }
+  // 모든 판매점을 데이터를 가져옴
+  @wire(getAccounts)
+  wiredAccounts({ error, data }) {
+    if (data) {
+      this.accounts = data.map((account) => ({
+        label: account.Name,
+        value: account.Id
+      }));
+    } else if (error) {
+      console.error("Error fetching accounts:", error);
+    }
+  }
 
+  // 모든 노트북 제품 데이터를 가져옴
+  @wire(getLaptopProducts)
+  wiredLaptops({ error, data }) {
+    if (data) {
+      this.laptops = data.map((laptop) => ({
+        label: laptop.Name,
+        value: laptop.Id,
+        price: laptop.Price__c
+      }));
+    } else if (error) {
+      console.error("Error fetching accounts:", error);
+    }
+  }
   // 모든 노트북 제품 데이터를 가져옴
   @wire(getLaptopProducts)
   wiredLaptops({ error, data }) {
@@ -252,7 +313,25 @@ export default class SalesComponent extends LightningElement {
       console.error("Error fetching accounts:", error);
     }
   }
+  // 모든 주변기기 제품 데이터를 가져옴
+  @wire(getGeneralDeviceProducts)
+  wiredGeneralDevices({ error, data }) {
+    if (data) {
+      this.generalDevices = data.map((generalDevice) => ({
+        label: generalDevice.Name,
+        value: generalDevice.Id,
+        price: generalDevice.Price__c
+      }));
+    } else if (error) {
+      console.error("Error fetching accounts:", error);
+    }
+  }
 
+  // 노트북 로우의 제품 가격을 찾는 함수
+  getLaptopRowPrice(productId) {
+    const filteredLaptop = this.laptops.find((item) => item.value === productId);
+    return filteredLaptop ? filteredLaptop.price : 0;
+  }
   // 노트북 로우의 제품 가격을 찾는 함수
   getLaptopRowPrice(productId) {
     const filteredLaptop = this.laptops.find((item) => item.value === productId);
@@ -477,6 +556,9 @@ export default class SalesComponent extends LightningElement {
   // 선택한 할인율을 가져옴
   handleDiscountRateChange(event) {
     this.discount = parseInt(event.target.value, 10);
+  // 선택한 할인율을 가져옴
+  handleDiscountRateChange(event) {
+    this.discount = parseInt(event.target.value, 10);
 
     if (event.target.value > 20) {
       this.dispatchEvent(
@@ -510,6 +592,16 @@ export default class SalesComponent extends LightningElement {
     this.isloading = true;
 
     const uniqueProducts = this.products.reduce((acc, current) => {
+      const isDuplicate = acc.some(
+        (item) => item.type === current.type && item.productId === current.productId
+      );
+      if (!isDuplicate) {
+        return acc.concat(
+          Array.from({ length: current.quantity }, () => ({ ...current }))
+        );
+      } else {
+        return acc;
+      }
       const isDuplicate = acc.some(
         (item) => item.type === current.type && item.productId === current.productId
       );
@@ -610,7 +702,30 @@ export default class SalesComponent extends LightningElement {
 //         });
 //     }
 //     console.log(products[0])
+//    // 노트북 정보 추가
+//    this.laptop.forEach(row => {
+//     if (row.laptop && row.laptopQuantity) {
+//         products.push({
+//             type: 'laptop',
+//             productId: row.laptop,
+//             quantity: row.laptopQuantity,
+//         });
+//     }
+//     console.log(products[0])
 
+// });
+
+// // 주변기기 정보 추가
+// this.generalDevice.forEach(row => {
+//     if (row.generalDevice && row.generalDeviceQuantity) {
+//         products.push({
+//             type: 'device',
+//             productId: row.generalDevice,
+//             quantity: row.generalDeviceQuantity,
+//         });
+//     }
+//     console.log(products[0])
+// });
 // });
 
 // // 주변기기 정보 추가
@@ -634,10 +749,29 @@ export default class SalesComponent extends LightningElement {
 //         this.addNewGeneralDeviceRow(index);
 //     }
 // }
+//   addRow(event) {
+//     const key = event.target.accessKey;
+//     const index = event.target.id;
+//     if (key === 'laptop') {
+//         this.addNewLaptopRow(index);
+//     } else if (key === 'generalDevice') {
+//         this.addNewGeneralDeviceRow(index);
+//     }
+// }
 
 // addToProducts(type, productId, quantity) {
 //     const existingProductIndex = this.products.findIndex(item => item.type === type && item.productId === productId);
+// addToProducts(type, productId, quantity) {
+//     const existingProductIndex = this.products.findIndex(item => item.type === type && item.productId === productId);
 
+//     if (existingProductIndex === -1 && productId) {
+//         this.products = [...this.products, {
+//             type: type,
+//             productId: productId,
+//             quantity: quantity
+//         }];
+//     }
+// }
 //     if (existingProductIndex === -1 && productId) {
 //         this.products = [...this.products, {
 //             type: type,

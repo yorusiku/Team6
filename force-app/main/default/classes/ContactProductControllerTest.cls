@@ -164,6 +164,7 @@ private class ContactProductControllerTest {
         }
 
     
+    
         Test.startTest();
         testSalesCode = ContactProductController.getSalesCode(testContactProducts); 
 

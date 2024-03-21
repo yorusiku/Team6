@@ -1,12 +1,32 @@
 .add-contact-product-form {
   display: flex;
   flex-direction: column-reverse;
+  flex-direction: column-reverse;
   padding: 10px;
+  right: 10px;
+  border: 2px solid orange;
   right: 10px;
   border: 2px solid orange;
   border-radius: 5px;
   width: 90%;
+  width: 90%;
   background-color: white;
+}
+
+.slds-card {
+  border: 2px solid #2995ff;
+  /* line12 ---> 컴포넌트 테두리 */
+}
+
+.slds-align_absolute-center lightning-button {
+  width: 10rem;
+  height: 2rem;
+}
+
+.scroll-container {
+  /* width: 100%;
+  max-width: 100%; */
+  margin-left: 40px;
 }
 
 .slds-card {
@@ -36,16 +56,20 @@
   display: flex;
   align-items: center;
   margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 .laptop-product-row lightning-combobox,
 .general-devices-product-row lightning-combobox {
   flex: 1;
   margin-right: 10px;
+  flex: 1;
+  margin-right: 10px;
 }
 
 .laptop-product-row lightning-input,
 .general-devices-product-row lightning-input {
+  width: 45px;
   width: 45px;
 }
 

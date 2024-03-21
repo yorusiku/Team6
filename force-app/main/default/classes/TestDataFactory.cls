@@ -23,6 +23,10 @@ public class TestDataFactory {
                                                 Integer TotalPurchaseGeneralDevices, Integer TotalPurchaseLaptop,
                                                 Date LatestPurchaseDate) {
 
+                                               Id TierId, Integer TotalPurchaseAmount, 
+                                                Integer TotalPurchaseGeneralDevices, Integer TotalPurchaseLaptop,
+                                                Date LatestPurchaseDate) {
+
         List<Contact> cons = new List<Contact>();
 
         for(Integer i = 0; i < numContacts; i++) {
@@ -54,6 +58,20 @@ public class TestDataFactory {
         }
 
             insert cons;
+
+            return cons;
+    }
+
+    //전화번호 생성 메서드
+    public static String padLeftWithZeros(String originalString, Integer desiredLength) {
+        Integer numberOfZerosToAdd = desiredLength - originalString.length();
+        String zeros = '';
+        for(Integer i = 0; i < numberOfZerosToAdd; i++) {
+            zeros += '0';
+        }
+        return zeros + originalString;
+    }
+
 
             return cons;
     }
@@ -101,11 +119,17 @@ public class TestDataFactory {
     public static List<Contact_Products__c> createContactProducts(Integer recordSize,Integer discount,Datetime orderDateTime){
         List<Account> testAccounts = TestDataFactory.createAccount(1); // 판매점
         Tier__c testTierD = TestDataFactory.createTier(Constants.D_TIER, 0, 0); //고객등급
+        List<Account> testAccounts = TestDataFactory.createAccount(1); // 판매점
+        Tier__c testTierD = TestDataFactory.createTier(Constants.D_TIER, 0, 0); //고객등급
         List<Contact> testContacts = TestDataFactory.createContacts(1, Constants.CUSTOMER_RECORD_TYPE_ID , Constants.CONTACT_TYPE_PURCHASE,
         Utility.getTierId(Constants.D_TIER), 0 , 0 , 0 , Date.today()); //고객이름
         List<Product2> testProducts = TestDataFactory.createProducts(1, Constants.NOTEBOOK, 2000000); //제품명      
 
+        Utility.getTierId(Constants.D_TIER), 0 , 0 , 0 , Date.today()); //고객이름
+        List<Product2> testProducts = TestDataFactory.createProducts(1, Constants.NOTEBOOK, 2000000); //제품명      
+
         List<Contact_Products__c> cps = new List<Contact_Products__c>(); 
+
 
         for(Integer i = 0 ; i < recordSize ;i++) {
             Contact_Products__c cp = new Contact_Products__c(
@@ -138,6 +162,23 @@ public class TestDataFactory {
         return sps;
     }
     
+
+    // VOC을 테스팅 하기 위한 '판매된 제품' 레코드를 만들어 주는 메서드
+    public static List<Sales_Product__c> createSalesProducts(Integer recordSize) {
+        List<Contact_Products__c> testContactProducts = createContactProducts(1, 0, DateTime.now()); 
+        List<Sales_Product__c> sps = new List<Sales_Product__c>();  
+
+        for(Integer i = 0; i < recordSize; i++) {
+            Sales_Product__c sp = new Sales_Product__c(
+            Contact_Products__c = testContactProducts[0].Id);
+
+            sps.add(sp);
+        }
+        insert sps;
+    
+        return sps;
+    }
+    
     
     // 상담을 테스팅 하기 위해 상담 레코드를 만들어 주는 메서드
     public static List<Consultant__c> createConsultant(Integer recordSize){
@@ -145,6 +186,7 @@ public class TestDataFactory {
         Tier__c testTierD = TestDataFactory.createTier(Constants.D_TIER, 0, 0);
         List<Contact> testContacts = TestDataFactory.createContacts(1, Constants.CUSTOMER_RECORD_TYPE_ID , Constants.CONTACT_TYPE_PURCHASE,
         Utility.getTierId(Constants.D_TIER), 0 , 0 , 0 , Date.today());
+
 
         List<Consultant__c> ccs = new List<Consultant__c>();
 
@@ -157,11 +199,40 @@ public class TestDataFactory {
                 IsProvided__c = true
             );
             ccs.add(cc);
+            );
+            ccs.add(cc);
         }
         insert ccs;
 
         return ccs;
     }
+
+    // VOC를 테스팅하기 위해 VOC 레코드를 만들어 주는 메서드
+
+    public static List<VOC__c> createVOC(Integer recordSize, String VOCType){
+        List<Sales_Product__c> testSalesProducts = TestDataFactory.createSalesProducts(1);
+        Tier__c testTierD = TestDataFactory.createTier(Constants.D_TIER, 0, 0);
+        List<Contact> testContacts = TestDataFactory.createContacts(1, Constants.CUSTOMER_RECORD_TYPE_ID , Constants.CONTACT_TYPE_PURCHASE,
+        Utility.getTierId(Constants.D_TIER), 0 , 0 , 0 , Date.today());
+
+        List<VOC__c> vocs = new List<VOC__c>();
+
+        for(Integer i = 0 ; i < recordSize ;i++) {
+            VOC__c voc = new VOC__c(
+                Sales_Product__c = testSalesProducts[0].Id,
+                CustomerName__c = testContacts[0].Id,
+                VOCType__c = VOCType,
+                Content__c = 'test content'
+                
+                );
+                vocs.add(voc);
+        }
+        insert vocs;
+
+        return vocs;
+    }
+
+
 
     // VOC를 테스팅하기 위해 VOC 레코드를 만들어 주는 메서드
 
