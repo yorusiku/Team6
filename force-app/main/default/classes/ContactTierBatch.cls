@@ -24,7 +24,6 @@ public with sharing class ContactTierBatch implements Database.Batchable<sObject
         Tier__c C = TierController.assignTier(Constants.C_TIER);
         Tier__c D = TierController.assignTier(Constants.D_TIER);
 
-        System.debug('contactList::' + contactList);
         for(Contact con : contactList){
             // 최근 90일에 구매가 있을 경우 
             if(con.Purchase_In_Recent_90Days__c){
@@ -55,7 +54,6 @@ public with sharing class ContactTierBatch implements Database.Batchable<sObject
             }
         }
         
-        System.debug('contactListToUpdate::' + contactListToUpdate);
         if (!contactListToUpdate.isEmpty()) {
             update contactListToUpdate;
         }
