@@ -8,37 +8,34 @@ public with sharing class ContactPurchaseAmountBatch implements Database.Batchab
         return Database.getQueryLocator(query);
     }
     
-    /**
-    * 최근 구매일이 90일안에 들어오는 경우 
-    * 
-    */
     public void execute(Database.BatchableContext bc, List<Contact> contactList){
         List<Contact> contactListToUpdate = new List<Contact>();
-        
+        Map<String,Integer> totalAmountMap = new Map<String,Integer>();
+
+        // 최근 구매일이 90일안에 들어오는 경우 
         for(Contact con : contactList){
             if(con.Purchase_In_Recent_90Days__c){
-                Integer customerTotalPurchase = ContactProductController.getCustomerTotalPurchase(con);
-                System.debug(customerTotalPurchase);
-                Integer customerTotalNotebookPurchase = ContactProductController.getCustomerTotalNotebookPurchase(con);
-                System.debug(customerTotalNotebookPurchase);
-                Integer customerTotalGeneralDevicePurchase = ContactProductController.getCustomerTotalGeneralDevicePurchase(con);
-                System.debug(customerTotalGeneralDevicePurchase);
-                String customerPurchasedItems = ContactProductController.getCustomerPurchaseItemList(con);
-                System.debug(customerPurchasedItems);
+                totalAmountMap = ContactProductController.getCustomerTotalAmount(con);
 
-                con.Total_Purchase_Amount__c = customerTotalPurchase;
-                con.Total_Purchase_of_Laptops__c = customerTotalNotebookPurchase;
-                con.Total_Purchase_of_General_Devices__c = customerTotalGeneralDevicePurchase;
-                con.List_of_purchased_items__c = customerPurchasedItems;
+                con.Total_Purchase_Amount__c = totalAmountMap.get(Constants.TOTAL_CUSTOMER_PURCHASE);
+                con.Total_Purchase_of_Laptops__c = totalAmountMap.get(Constants.TOTAL_NOTEBOOK_PURCHASE);
+                con.Total_Purchase_of_General_Devices__c = totalAmountMap.get(Constants.TOTAL_GENERAL_DEVICE_PURCHASE);
+  
                 contactListToUpdate.add(con);
-
-                if(customerTotalPurchase == null){
+                // 최근 구매일이 90일안에 들어왔으나 구매값이 null인 경우 
+                if(con.Total_Purchase_Amount__c == null){
                     con.Total_Purchase_Amount__c = 0;
                     con.Total_Purchase_of_Laptops__c = 0;
                     con.Total_Purchase_of_General_Devices__c = 0;
-                    con.List_of_purchased_items__c = '';
                     contactListToUpdate.add(con);
                 }
+            
+            // 최근 구매일이 90일안에 들어오지 않는 경우 
+            }else if(!con.Purchase_In_Recent_90Days__c){
+                con.Total_Purchase_Amount__c = 0;
+                con.Total_Purchase_of_Laptops__c = 0;
+                con.Total_Purchase_of_General_Devices__c = 0;
+                contactListToUpdate.add(con);
             }
         }
 

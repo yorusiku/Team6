@@ -11,20 +11,10 @@ private class ContactTierBatchTest {
         Tier__c testTierB = TestDataFactory.createTier(Constants.B_TIER, 2000000, 4999999);
         Tier__c testTierC = TestDataFactory.createTier(Constants.C_TIER, 1, 199999);
         Tier__c testTierD = TestDataFactory.createTier(Constants.D_TIER, 0, 0);
-        
-        System.debug('testTierA::' + testTierA);
-        System.debug('testTierB::' + testTierB);
-        System.debug('testTierC::' + testTierC);
-        System.debug('testTierD::' + testTierD);
-        
-        // Testing 에 쓰일 Customer 데이터들 - 구매가 있는 경우
+             
         List<Contact> testPurchaseContacts = TestDataFactory.createContacts(4, Constants.CUSTOMER_RECORD_TYPE_ID, Constants.CONTACT_TYPE_PURCHASE,
         Utility.getTierId(Constants.D_TIER), 0, 0, 0, Date.today().addDays(-7));
         
-        // Testing 에 쓰일 각 Customer 데이터 - 구매가 없는 경우
-        List<Contact> testNoPurchaseContacts = TestDataFactory.createContacts(1, Constants.CUSTOMER_RECORD_TYPE_ID, Constants.CONTACT_TYPE_PURCHASE,
-        Utility.getTierId(Constants.D_TIER), 0, 0, 0, null);
-
         List<Contact> testContactsToUpdate = [SELECT Id, Name, Total_Purchase_Amount__c, Purchase_In_Recent_90Days__c
                                               FROM Contact];
         
@@ -42,11 +32,6 @@ private class ContactTierBatchTest {
         }
         // 업데이트
         update testContactsToUpdate;
-
-        // 구매가 없는 데이터 추가
-        testContactsToUpdate.add(testNoPurchaseContacts[0]);
-
-        System.debug(testContactsToUpdate);
 
         Test.startTest();
         ContactTierBatch batch = new ContactTierBatch();

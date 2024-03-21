@@ -1,31 +1,84 @@
 <template>
-    <div onclick={selectProduct} class={tileClass}>
-        <div style={backgroundStyle} class="tile"></div>
-        <div class="lower-third">
-            <template if:true={product}>
-                <h1 class="slds-truncate slds-text-heading_medium">{product.Name}</h1>
-                <h2 class="slds-truncate slds-text-heading_small">{product.Family}</h2>
-                <div class="slds-text-body_small">
-                    제품가격: <lightning-formatted-number value={product.Price__c} maximum-fraction-digits="2"></lightning-formatted-number>
-                </div>
-                <div class="slds-text-body_small">제품코드: {product.ProductCode}</div>
-            </template>
-            <template if:true={notebookProduct}>
-                <h1 class="slds-truncate slds-text-heading_medium">{notebookProduct.Name}</h1>
-                <h2 class="slds-truncate slds-text-heading_small">{notebookProduct.Family}</h2>
-                <div class="slds-text-body_small">
-                    제품가격: <lightning-formatted-number value={notebookProduct.Price__c} maximum-fraction-digits="2"></lightning-formatted-number>
-                </div>
-                <div class="slds-text-body_small">제품코드: {notebookProduct.ProductCode}</div>
-            </template>
-            <template if:true={generalDeviceProduct}>
-                <h1 class="slds-truncate slds-text-heading_medium">{generalDeviceProduct.Name}</h1>
-                <h2 class="slds-truncate slds-text-heading_small">{generalDeviceProduct.Family}</h2>
-                <div class="slds-text-body_small">
-                    제품가격: <lightning-formatted-number value={generalDeviceProduct.Price__c} maximum-fraction-digits="2"></lightning-formatted-number>
-                </div>
-                <div class="slds-text-body_small">제품코드: {generalDeviceProduct.ProductCode}</div>
-            </template>
+  <div onclick={selectProduct} class={tileClass}>
+    <div style={backgroundStyle} class="tile"></div>
+    <div class="lower-third">
+      <template if:true={product}>
+        <h1 class="slds-truncate slds-text-heading_medium">
+          <span class="slds-badge slds-badge_inverse">{product.Name}</span></h1>
+        <h2 class="slds-truncate slds-text-heading_small">
+          <span class="slds-badge slds-badge_lightest">{product.Family}</span></h2>
+        <div class="slds-text-body_small">
+          <span class="slds-badge">제품가격</span>
+          <lightning-formatted-number
+            value={product.Price__c}
+            maximum-fraction-digits="2"
+          ></lightning-formatted-number>
         </div>
+        <div class="slds-text-body_small">
+          <span class="slds-badge">제품코드</span> 
+          {product.ProductCode}
+        </div>
+      </template>
+      <template if:true={notebookProduct}>
+        <h1 class="slds-truncate slds-text-heading_medium">
+          {notebookProduct.Name}
+        </h1>
+        <h2 class="slds-truncate slds-text-heading_small">
+          {notebookProduct.Family}
+        </h2>
+        <div class="slds-text-body_small">
+          제품가격:
+          <lightning-formatted-number
+            value={notebookProduct.Price__c}
+            maximum-fraction-digits="2"
+          ></lightning-formatted-number>
+        </div>
+        <div class="slds-text-body_small">
+          제품코드: {notebookProduct.ProductCode}
+        </div>
+      </template>
+      <template if:true={generalDeviceProduct}>
+        <h1 class="slds-truncate slds-text-heading_medium">
+          {generalDeviceProduct.Name}
+        </h1>
+        <h2 class="slds-truncate slds-text-heading_small">
+          {generalDeviceProduct.Family}
+        </h2>
+        <div class="slds-text-body_small">
+          제품가격:
+          <lightning-formatted-number
+            value={generalDeviceProduct.Price__c}
+            maximum-fraction-digits="2"
+          ></lightning-formatted-number>
+        </div>
+        <div class="slds-text-body_small">
+          제품코드: {generalDeviceProduct.ProductCode}
+        </div>
+      </template>
     </div>
+
+    <lightning-record-view-form
+      if:true={objRecordId}
+      record-id={objRecordId}
+      object-api-name="Product2"
+    >
+      <section
+        style="position: absolute; opacity: 1"
+        class="slds-popover slds-popover_panel slds-nubbin_top-left"
+      >
+        <div class="slds-popover__header">
+          <header>
+            <h2 class="slds-text-heading_small">제품 정보</h2>
+          </header>
+        </div>
+        <div class="slds-popover__body">
+          <lightning-output-field field-name="Name"> </lightning-output-field>
+          <lightning-output-field field-name="Price__c">
+          </lightning-output-field>
+          <lightning-output-field field-name="Description">
+          </lightning-output-field>
+        </div>
+      </section>
+    </lightning-record-view-form>
+  </div>
 </template>

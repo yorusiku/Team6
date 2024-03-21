@@ -46,9 +46,8 @@ public with sharing class ContactProductTriggerHandler {
         }
     }
     
-    /**
-    * 판매를 만들어주는 method 
-    */
+    
+    //고객제품주문 생성 후 판매가 없으면 생성해주고, 있으면 값을 업데이트 해주는 method 
     public static void insertAndUpdateSale(List<Contact_Products__c> contactProduct) {
         List<String> ProductNameList = new List<String>();
         String ProductName = '';
@@ -123,7 +122,7 @@ public with sharing class ContactProductTriggerHandler {
 
 
             // 업데이트할 판매 레코드를 불러오는 쿼리 
-            for(Sale__c scToUpdate : [SELECT Id, List_of_Purchased_Items__c, Total_Price__c, Discount_Value__c, Final_Price__c, Discount_Percent__c
+            for(Sale__c scToUpdate : [SELECT Id, Total_Price__c, List_of_Purchased_Items__c, Discount_Value__c, Final_Price__c, Discount_Percent__c
                                     FROM Sale__c 
                                     WHERE Id IN :SaleId]){
                 // 기존의 값에서 최종적으로 더해지는 값들로 업데이트 
@@ -163,7 +162,7 @@ public with sharing class ContactProductTriggerHandler {
         }
     }
     
-        public static void UpdateAccountSalesInformation(List<Contact_Products__c> contactProducts) {
+        public static void InsertAccountSalesInformationSale(List<Contact_Products__c> contactProducts) {
             // Account ID 수집
             Set<Id> accountIds = new Set<Id>();
             for (Contact_Products__c cp : contactProducts) {
@@ -172,24 +171,42 @@ public with sharing class ContactProductTriggerHandler {
             // 현재 날짜와 비교할 Date 변수 설정
             Integer year = Date.today().year();
             Integer month = Date.today().month();
-            Date firstDayOfWeek = Date.today().toStartOfWeek();
             Integer daily = Date.today().day();
             // 필요한 Account 레코드 조회
             Map<Id, Account> accountMap = new Map<Id, Account>([
-                SELECT Id, Total_Sales__c, Annual_Sales__c,
-                Monthly_Sales__c, Daily_Sales__c, Weekly_Sales__c,
-                LastYearlyUpdate__c,LastMonthlyUpdate__c,LastWeeklyUpdate__c,LastDailyUpdate__c
+                SELECT Id, Total_Sales__c, Annual_Sales__c, Monthly_Sales__c, Daily_Sales__c,
+                LastYearlyUpdate__c,LastMonthlyUpdate__c,LastDailyUpdate__c,
+                Total_General_Device_Sales__c,Total_Laptop_Sales__c
                 FROM Account
                 WHERE Id IN :accountIds
                 ]);
-                
+                // Set<Id> accountIds = new Set<Id>();
+            for (Contact_Products__c cp : contactProducts) {
+                accountIds.add(cp.Account__c);
+            }
                 // 각 Account의 총 판매액 업데이트 + 초기화
-                for (Contact_Products__c cp : contactProducts) {
-                    //총 매출액 구하기
+            for (Contact_Products__c cp : contactProducts) {
+                if(cp.Status__c == 'Purchased') {
                     if (accountMap.containsKey(cp.Account__c)) {
                         Account acc = accountMap.get(cp.Account__c);
+                        // 총매출액 구하기
+                        if(acc.Total_Sales__c == null) {
+                            acc.Total_Sales__c = cp.Total_Purchase__c;
+                        } else {
                             acc.Total_Sales__c += cp.Total_Purchase__c;
-                        
+                        }
+                        //주변기기 매출 총액
+                        if(acc.Total_General_Device_Sales__c == null) {
+                            acc.Total_General_Device_Sales__c = cp.Total_Purchase_of_General_Devices__c;
+                        } else {
+                            acc.Total_General_Device_Sales__c += cp.Total_Purchase_of_General_Devices__c;
+                        }
+                        //노트북 매출 총액
+                        if(acc.Total_Laptop_Sales__c == null) {
+                            acc.Total_Laptop_Sales__c = cp.Total_Purchase_of_Laptops__c;
+                        } else {
+                            acc.Total_Laptop_Sales__c += cp.Total_Purchase_of_Laptops__c;
+                        }
                         //날짜가 null || 다르면 값을 갱신 매출액 초기화
                         if(acc.LastYearlyUpdate__c == null || acc.LastYearlyUpdate__c != year) {
                             acc.Annual_Sales__c = cp.Total_Purchase__c;
@@ -203,20 +220,69 @@ public with sharing class ContactProductTriggerHandler {
                         } else {
                             acc.Monthly_Sales__c += cp.Total_Purchase__c;
                         }
-                        if(acc.LastWeeklyUpdate__c == null || acc.LastWeeklyUpdate__c != firstDayOfWeek) {
-                            acc.Weekly_Sales__c = cp.Total_Purchase__c;
-                            acc.LastWeeklyUpdate__c = firstDayOfWeek;
-                        } else {
-                            acc.Weekly_Sales__c += cp.Total_Purchase__c;
-                        }
                         if(acc.LastDailyUpdate__c == null || acc.LastDailyUpdate__c != daily) {
                             acc.Daily_Sales__c = cp.Total_Purchase__c;
                             acc.LastDailyUpdate__c = daily;
                         } else {
                             acc.Daily_Sales__c += cp.Total_Purchase__c;
                         }
+                    }
+                }
+                // cp.Total_Purchase__c = 0;
+            }
+            
+            // 업데이트된 Account 레코드 저장
+            update accountMap.values();
+        }
+
+        public static void UpdateAccountSalesInformationRefund(List<Contact_Products__c> contactProducts) {
+            // Account ID 수집
+            Set<Id> accountIds = new Set<Id>();
+            for (Contact_Products__c cp : contactProducts) {
+                accountIds.add(cp.Account__c);
+            }
+            // 현재 날짜와 비교할 Date 변수 설정
+            Integer year = Date.today().year();
+            Integer month = Date.today().month();
+            Integer daily = Date.today().day();
+            // 필요한 Account 레코드 조회
+            Map<Id, Account> accountMap = new Map<Id, Account>([
+                SELECT Id, Total_Sales__c, Annual_Sales__c, Monthly_Sales__c, Daily_Sales__c,
+                LastYearlyUpdate__c,LastMonthlyUpdate__c,LastDailyUpdate__c,
+                Total_General_Device_Sales__c,Total_Laptop_Sales__c
+                FROM Account
+                WHERE Id IN :accountIds
+                ]);
+
+                // 각 Account의 총 판매액 업데이트 + 초기화
+            for (Contact_Products__c cp : contactProducts) {
+                if (accountMap.containsKey(cp.Account__c)) {
+                    Account acc = accountMap.get(cp.Account__c);
+                }
+                DateTime orderDateTime = cp.Order_Date_Time__c;
+                Date orderDate = orderDateTime.Date();
+                Integer orderInt = orderDate.day();
+                if(cp.Status__c == 'Refunded') { // 제품이 '구매'일 경우 값 변동 X
+                    Account acc = accountMap.get(cp.Account__c);
+                    // 총매출액 빼기
+                        acc.Total_Sales__c -= cp.Total_Purchase__c;
+                    //주변기기 매출 뺴기
+                        acc.Total_General_Device_Sales__c -= cp.Total_Purchase_of_General_Devices__c;
+                    //노트북 매출 빼기
+                        acc.Total_Laptop_Sales__c -= cp.Total_Purchase_of_Laptops__c;
+                    // 날짜별 매출 빼기
+                    if(acc.LastYearlyUpdate__c == year) {
+                        acc.Annual_Sales__c -= cp.Total_Purchase__c;
+                    }
+                    if(acc.LastMonthlyUpdate__c == month && acc.LastYearlyUpdate__c == year) {
+                        acc.Monthly_Sales__c -= cp.Total_Purchase__c;
+                    }
+                    if(orderInt == daily && acc.LastMonthlyUpdate__c == month && acc.LastYearlyUpdate__c == year) {
+                        acc.Daily_Sales__c -= cp.Total_Purchase__c;
+                    }
                 }
             }
+            
             // 업데이트된 Account 레코드 저장
             update accountMap.values();
         }

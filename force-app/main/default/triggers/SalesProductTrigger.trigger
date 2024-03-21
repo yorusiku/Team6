@@ -1,15 +1,6 @@
-trigger SalesProductTrigger on Sales_Product__c (after insert, after update) {
+trigger SalesProductTrigger on Sales_Product__c (after insert){
   if(Trigger.isAfter)
-      if(Trigger.isInsert){
-        SalesProductController.updateSerialNumbers(Trigger.new);
+     if(Trigger.isInsert){
+        SalesProductTriggerHandler.updateIsSalesProductCheckedToTrue(Trigger.new);
       }
-  }
-
-
-
-
-// trigger SalesProductTrigger on Sales_Product__c (before insert) {
-//   if (Trigger.isBefore && Trigger.isInsert) {
-//       SalesProductController.mapOrderCodeToSerialNumber(Trigger.new);
-//   }
-// }
+}

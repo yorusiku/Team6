@@ -1,58 +1,141 @@
 <template>
-    <lightning-card class="add-contact-product-form">
-        <lightning-input class="exclude-from-reset" type="hidden" label="고객명" object-api-name="Contact" value={recordId}></lightning-input>
-        <lightning-combobox label="판매점" value={account} options={accounts} onchange={handleAccountSelection}></lightning-combobox>
+  <div if:true={isloading} class="loading-overlay">
+    <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+  </div>
+  <div if:false={isloading} onclick={handleWheel} onmousewheel={handleWheel}>
+    <lightning-card
+      title="주문"
+      class="add-contact-product-form slds-card scroll-container"
+    >
+      <!-- style={containerStyle} -->
 
-        <!-- 노트북 로우들 -->
-        <template for:each={laptopRows} for:item="laptopRow" for:index="laptopIndex">
-            <lightning-layout key={laptopRow.id}>
-                <lightning-layout-item class="slds-size_2-of-3">
-                    <lightning-combobox class="slds-m-right_small" label="노트북제품" value={laptopRow.laptop} options={laptops} onchange={handleLaptopSelection}></lightning-combobox>
-                </lightning-layout-item>
-                <lightning-layout-item class="slds-size_1-of-5">
-                    <lightning-input  type="number" label="수량" value={laptopRow.quantity} onchange={handleLaptopQuantityCountChange}></lightning-input>
-                </lightning-layout-item>
-            </lightning-layout>
-        </template>
-        
+      <!-- <lightning-input class="exclude-from-reset" type="hidden" label="고객명" object-api-name="Contact" value={recordId}></lightning-input> -->
+      <lightning-combobox
+        placeholder="판매점 선택"
+        label="판매점"
+        value={account}
+        options={accounts}
+        onchange={handleAccountSelection}
+      ></lightning-combobox>
+
+      <!-- 노트북 로우들 -->
+      <template for:each={laptopRows} for:item="laptopRow" for:index="laptopIndex">
+        <lightning-layout class="lightning-layout" key={laptopRow.id}>
+          <lightning-layout-item class="slds-size_2-of-3">
+            <lightning-combobox
+              placeholder="모델 선택"
+              class="slds-m-right_small"
+              label="노트북제품"
+              data-rowid={laptopRow.id}
+              value={laptopRow.laptop}
+              options={laptops}
+              onchange={handleLaptopSelection}
+            ></lightning-combobox>
+          </lightning-layout-item>
+          <lightning-layout-item class="slds-size_1-of-5">
+            <lightning-input
+              placeholder="수량"
+              data-rowid={laptopRow.id}
+              type="number"
+              label="수량"
+              value={laptopRow.quantity}
+              onchange={handleLaptopQuantityCountChange}
+            ></lightning-input>
+          </lightning-layout-item>
+        </lightning-layout>
+      </template>
+
+      <div class="slds-align_absolute-center">
         <!-- 노트북 로우 버튼 -->
-        <lightning-button class="slds-m-left_x-small" label="품목 추가하기" onclick={addNewLaptopRow}></lightning-button>
-        <lightning-button class="slds-m-left_x-small" label="품목 제거하기" onclick={deleteLastLaptopRow}></lightning-button>
+        <button title="노트북 추가" onclick={addNewLaptopRow} class="custombtn">
+          노트북 추가
+        </button>
+        <button title="노트북 제거" onclick={deleteLastLaptopRow} class="custombtn">
+          노트북 제거
+        </button>
+      </div>
 
+      <!-- 주변기기 로우들 -->
+      <template
+        for:each={generalDeviceRows}
+        for:item="generalDeviceRow"
+        for:index="generalDeviceIndex"
+      >
+        <lightning-layout key={generalDeviceRow.id}>
+          <lightning-layout-item class="slds-size_2-of-3">
+            <lightning-combobox
+              placeholder="모델 선택"
+              class="slds-m-right_small"
+              label="주변기기제품"
+              data-rowid={generalDeviceRow.id}
+              value={generalDeviceRow.generalDevice}
+              options={generalDevices}
+              onchange={handleGeneralDeviceSelection}
+            ></lightning-combobox>
+          </lightning-layout-item>
+          <lightning-layout-item class="slds-size_1-of-5">
+            <lightning-input
+              data-rowid={generalDeviceRow.id}
+              placeholder="수량"
+              type="number"
+              label="수량"
+              value={generalDeviceRow.quantity}
+              onchange={handleGeneralDeviceQuantityCountChange}
+            ></lightning-input>
+          </lightning-layout-item>
+        </lightning-layout>
+      </template>
 
-        <!-- 주변기기 로우들 -->
-        <template for:each={generalDeviceRows} for:item="deviceRow" for:index="generalDeviceIndex">
-            <lightning-layout key={deviceRow.id}>
-                <lightning-layout-item class="slds-size_2-of-3">
-                    <lightning-combobox class="slds-m-right_small" label="주변기기제품" value={deviceRow.generalDevice} options={generalDevices} onchange={handleGeneralDeviceSelection}></lightning-combobox>
-                </lightning-layout-item>
-                <lightning-layout-item class="slds-size_1-of-5">
-                    <lightning-input type="number" label="수량" value={deviceRow.quantity} onchange={handleGeneralDeviceQuantityCountChange}></lightning-input>
-                </lightning-layout-item>
-            </lightning-layout>
-        </template>
-        
+      <div class="slds-align_absolute-center">
         <!-- 주변기기 로우 버튼 -->
-        <lightning-button class="slds-m-left_x-small" label="품목 추가하기" onclick={addNewGeneralDeviceRow}></lightning-button>
-        <lightning-button class="slds-m-left_x-small" label="품목 제거하기" onclick={deleteLastGeneralDeviceRow}></lightning-button>
+        <button
+          title="주변기기 추가"
+          onclick={addNewGeneralDeviceRow}
+          class="custombtn"
+        >
+          주변기기 추가
+        </button>
+        <button
+          title="주변기기 제거"
+          onclick={deleteLastGeneralDeviceRow}
+          class="custombtn"
+        >
+          주변기기 제거
+        </button>
+      </div>
 
+      <lightning-helptext content="주문 시 자동 입력됩니다"></lightning-helptext>
+      <lightning-input
+        type="datetime"
+        label="주문날짜"
+        value={orderDateTime}
+        onchange={handleOrderDateTimeSelection}
+        disabled="true"
+      ></lightning-input>
 
-        <lightning-input type="datetime" label="주문날짜" value={orderDateTime} onchange={handleOrderDateTimeSelection}></lightning-input>
-        <lightning-input type="number" label="할인율" value={discount} onchange={handleDiscountRateChange}></lightning-input>
-        <lightning-card title="제품 가격">
-            <div slot="footer">
-                <div>할인 전 총 가격: {totalPrice.originalTotalPrice}</div>
-                <div>노트북 가격: {totalPrice.laptopTotalPrice}</div>
-                <div>주변기기 가격: {totalPrice.generalDeviceTotalPrice}</div>
-                <div>할인 가격: {totalPrice.discountAmount}</div>
-                <div>할인 된 가격: {totalPrice.discountedPrice}</div>
-            </div>
-        </lightning-card>        
-        <lightning-button label="주문하기" onclick={addContactProducts}></lightning-button>
+      <lightning-input
+        placeholder="% 없이 숫자만 입력해주세요."
+        type="number"
+        label="할인율"
+        onchange={handleDiscountRateChange}
+      ></lightning-input>
+
+      <lightning-card title="제품 가격">
+        <div slot="footer" style="font-size: 13px" class="slds-text-align_left">
+          <div>할인 전 총 가격: {totalPrice.formattedOriginalTotalPrice} 원</div>
+          <div>노트북 가격: {totalPrice.formattedLaptopTotalPrice} 원</div>
+          <div>주변기기 가격: {totalPrice.formattedGeneralDeviceTotalPrice} 원</div>
+          <div>할인 가격: {totalPrice.formattedDiscountAmount} 원</div>
+          <div>할인 된 가격: {totalPrice.formattedDiscountedPrice} 원</div>
+        </div>
+      </lightning-card>
+      <lightning-button
+        label="주문하기"
+        onclick={addContactProducts}
+      ></lightning-button>
     </lightning-card>
-
-
-        <!-- <p>This example creates a simple layout with field headers.</p>
+  </div>
+  <!-- <p>This example creates a simple layout with field headers.</p>
     <div class="c-container">
         <lightning-layout>
             <lightning-layout-item padding="around-small">
@@ -77,6 +160,4 @@
             </lightning-layout-item>
         </lightning-layout>
     </div> -->
-
-
 </template>

@@ -14,9 +14,6 @@ public with sharing class RefundTriggerHandler {
             saleIds.add(re.Sale__c);
         }
 
-        System.debug('contactIds::' + contactIds);
-        System.debug('saleIds::' + saleIds);
-        
 
        List<Sale__c> saleListForCompare = [SELECT Id, Customer__c, Is_Refund__c 
                                            FROM Sale__c 
@@ -31,20 +28,12 @@ public with sharing class RefundTriggerHandler {
         Integer refundCount = refundListForCompare .size();
         Integer resultCount = saleCount - refundCount;
 
-        System.debug('saleCount::' + saleCount);
-        System.debug('refundCount::' + refundCount);
-        System.debug('saleListForCompare::' + saleListForCompare);
-        System.debug('refundListForCompare::' + refundListForCompare);
-        
-
-  
          for(Contact con : [SELECT Id, Name, Type__c, Total_Purchase_Amount__c 
                                FROM Contact
                                WHERE RecordTypeId = :Constants.CUSTOMER_RECORD_TYPE_ID
                                AND Id IN :contactIds]){              
             // 판매레코드에 환불이 체크되어 있고, 고객유형이 구매고 구매와 환불 레코드가 같으면(구매없으면) 상담으로 전환                    
             if(resultCount == 0 && con.Type__c == Constants.CONTACT_TYPE_PURCHASE){
-                System.debug('resultCount = 0::');
                 con.Type__c = Constants.CONTACT_TYPE_COUNSELING;
                 contactToUpdate.add(con);
             }

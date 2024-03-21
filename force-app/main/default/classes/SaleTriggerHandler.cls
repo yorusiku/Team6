@@ -5,7 +5,7 @@ public with sharing class SaleTriggerHandler {
     public static void updateCustomerTypeToPurchase(List<Sale__c> saleList) {
         Set<Id> contactIds = new Set<Id>();
         Set<Id> saleIds = new Set<Id>();
-        List<Contact>contactToUpdate = new List<Contact>();
+        List<Contact> contactToUpdate = new List<Contact>();
         
 
         for(Sale__c sc : saleList){
@@ -14,15 +14,14 @@ public with sharing class SaleTriggerHandler {
         }
 
         for(Sale__c sc : saleList){
-            for(Contact con : [SELECT Id, Name, Type__c, Total_Purchase_Amount__c 
+            for(Contact con : [SELECT Id, Name, Type__c, Total_Purchase_Amount__c, Latest_Purchase_Date__c
                                FROM Contact
                                WHERE RecordTypeId = :Constants.CUSTOMER_RECORD_TYPE_ID
                                AND Id IN :contactIds]){  
                                 
                 // 판매레코드에 환불이 체크되어 있지 않을때, 고객유형이 상담이고 구매금액이 있으면 구매로 전환                 
                 if(!sc.Is_Refund__c){
-                    if(con.Type__c == Constants.CONTACT_TYPE_COUNSELING && 
-                        con.Total_Purchase_Amount__c != null){
+                    if(con.Type__c == Constants.CONTACT_TYPE_COUNSELING && (con.Total_Purchase_Amount__c != null || con.Latest_Purchase_Date__c != null)){
                         con.Type__c = Constants.CONTACT_TYPE_PURCHASE;
                         contactToUpdate.add(con);
                     }
@@ -63,9 +62,7 @@ public with sharing class SaleTriggerHandler {
         }
     }
 
-    // Refund 생기는 시점에 따라 수정 필요
-    // Sales -> Sales Product 이후 ?
-    // 고객제품 / 판매 / 판매된 제품에도 상태 업데이트/
+    // 판매에서 환불이 체크로 업데이트되면 환불을 만들어주고, 고객제품 주문에서 판매의 상태를 환불로 바꿔주는 메서드
     public static void createRefundAndUpdateStatusToRefunded(List<Sale__c> saleList){
         Boolean firstrun = true;
 
@@ -87,11 +84,12 @@ public with sharing class SaleTriggerHandler {
                         ContactProductsToUpdate.add(cp);
                     }
                 if(firstrun){
-                    Refund__c re = new Refund__c();
-                    re.Sale__c = sc.Id;
-                    re.Date_Refund__c = Date.today();
-                    // 판매된 제품도 추가해야함
-                    refundListToInsert.add(re);
+                        Refund__c re = new Refund__c();
+                        re.Sale__c = sc.Id;
+                        re.Date_Refund__c = Date.today();
+                        re.List_of_Refund_Items__c = sc.List_of_Purchased_Items__c;
+                        re.Refund_Reason__c = sc.Refund_Details__c;
+                        refundListToInsert.add(re);
                     }
                     firstrun = false; 
                 }

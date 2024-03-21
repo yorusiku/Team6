@@ -12,15 +12,13 @@ public with sharing class ContactTierBatch implements Database.Batchable<sObject
         return Database.getQueryLocator(query);
     }
     
-       
-    /**
-    * 최근 구매일이 90일안에 들어오는 경우와 안들어올 경우  
-    * A등급(500만원 이상), B등급(200만원 이상), C등급(200만원 미만), D등급(미구매)
-    */
+    
+    //최근 구매일이 90일안에 들어오는 경우와 안들어올 경우  
+    //A등급(500만원 이상), B등급(200만원 이상), C등급(200만원 미만), D등급(미구매)
     public void execute(Database.BatchableContext bc, List<Contact> contactList){
         List<Contact>contactListToUpdate = new List<Contact>();
         
-        // TierController에서 Name에 따라서 tier을 정해주는 method을 불러와서 A,B,C,D등급 Tier의 값들을 할당해줌.
+        // TierController에서 Name에 따라서 tier을 정해주는 method을 불러와서 A,B,C,D등급 Tier의 값들을 할당.
         Tier__c A = TierController.assignTier(Constants.A_TIER);
         Tier__c B = TierController.assignTier(Constants.B_TIER);
         Tier__c C = TierController.assignTier(Constants.C_TIER);

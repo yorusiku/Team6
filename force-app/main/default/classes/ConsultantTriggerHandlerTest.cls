@@ -1,6 +1,8 @@
 @isTest
 private class ConsultantTriggerHandlerTest {
-    
+    /**
+    * ConsulationTriggerHandler updateConsultationCount() 테스트 
+    */
     @isTest
     private static void updateConsultationCount() {
         List<Consultant__c> testConsultant = TestDataFactory.createConsultant(1);
@@ -29,7 +31,7 @@ private class ConsultantTriggerHandlerTest {
             } 
         }
 
-        System.assertEquals(testConsultant.size(), contactConsultationCount, 'Incorrect contact total consultation.');
-        System.assertEquals(testConsultant.size(), accountConsultationCount, 'Incorrect account total consultation.');
+        System.assertEquals(testConsultant.size(), contactConsultationCount, Constants.CONTACT_TOTAL_COUNT_ASSERTION_MESSAGE);
+        System.assertEquals(testConsultant.size(), accountConsultationCount, Constants.ACCOUNT_TOTAL_COUNT_ASSERTION_MESSAGE);
     }
 }

@@ -58,27 +58,6 @@ public with sharing class ContactProductController {
         return contactProductsToInsert;
     }
 
-    /**
-    * 고객주문제품 record의 size를 count하는 method 
-    */ 
-    // public static Integer countOrderCodeSize(List<Contact_Products__c> contactProduct){
-    //     Integer OrderCodeSize;
-
-    //     Set<String> OrderCode = new Set<String>();
-    //     for(Contact_Products__c cp : contactProduct){
-    //         OrderCode.add(cp.Order_Code__c);
-    //     } 
-    //     List<AggregateResult> OrderCodeCount = [SELECT COUNT(Order_Code__c) 
-    //                                               FROM Contact_Products__c 
-    //                                               WHERE Order_Code__c IN :OrderCode]; 
-        
-    //     if (!OrderCodeCount.isEmpty()) {
-    //         OrderCodeSize = Integer.valueOf(OrderCodeCount[0].get('expr0'));
-    //     }
-
-    //     return OrderCodeSize;
-    // }
-
     // 고객주문제품코드에서 판매코드를 return하는 method 
     public static Set<String> getSalesCode(List<Contact_Products__c> contactProduct){
         Set<String> salesCode = new Set<String>(); 
@@ -118,7 +97,7 @@ public with sharing class ContactProductController {
         return salesId;
     }
 
-    // 고객주문제품에서 고객의 총 구매금액을 계산하는 메서드
+     // 고객주문제품에서 고객의 총 판매액을 구해서 계산하는 method 
     public static Integer getCustomerTotalPurchase(Contact con){
         Integer totalCustomerPurchase = 0;
         
@@ -191,5 +170,99 @@ public with sharing class ContactProductController {
 
         return ProductName;
     }
+    
 
+    // 총 구매금액, 총 주변기기금액, 총 노트북구매금액을 구해주는 메서드 
+    public static Map<String,Integer> getCustomerTotalAmount(Contact con){
+        Map<String,Integer> totalAmountMap = new Map<String,Integer>(); 
+        Integer totalCustomerPurchase = 0;
+        Integer totalNotebookPurchasePurchase = 0;
+        Integer totalGeneralDevicePurchase = 0;
+        AggregateResult[] totalAmountResults = [SELECT SUM(Total_Purchase__c)totalPrice, SUM(Total_Purchase_of_Laptops__c)totalNoteBookPrice, SUM(Total_Purchase_of_General_Devices__c)totalGeneralDevicePrice 
+                                    FROM Contact_Products__c 
+                                    WHERE Contact__c = :con.Id
+                                    AND Status__c = :Constants.CONTACT_PRODUCT_STATUS_PURCHASED
+                                    AND Order_Date_Time__c >= :con.Due_Date_90Days__c 
+                                    AND Order_Date_Time__c <= Today];
+        Decimal totalPrice = (Decimal)totalAmountResults[0].get(Constants.TOTAL_PRICE); 
+        Decimal totalNoteBookPrice = (Decimal)totalAmountResults[0].get(Constants.TOTAL_NOTEBOOK_PRICE); 
+        Decimal totalGeneralDevicePrice = (Decimal)totalAmountResults[0].get(Constants.TOTAL_GENERAL_DEVICE_PRICE); 
+        
+        if(totalPrice == null){
+            totalPrice = 0;
+            totalNoteBookPrice = 0;
+            totalGeneralDevicePrice = 0;
+        }
+        
+        totalCustomerPurchase = totalPrice.intValue();
+        totalNotebookPurchasePurchase = totalNoteBookPrice.intValue();
+        totalGeneralDevicePurchase = totalGeneralDevicePrice.intValue();
+        
+        totalAmountMap.put(Constants.TOTAL_CUSTOMER_PURCHASE , totalCustomerPurchase);
+        totalAmountMap.put(Constants.TOTAL_NOTEBOOK_PURCHASE , totalNotebookPurchasePurchase);
+        totalAmountMap.put(Constants.TOTAL_GENERAL_DEVICE_PURCHASE, totalGeneralDevicePurchase);
+        
+        return totalAmountMap;
+    }
+
+
+    //구매고객을 불러와서 주문코드로 검색하는 메서드 
+    @AuraEnabled(cacheable=true scope='global')
+    public static List<Contact_Products__c> searchContactProductsByOrderCode(String searchTerm) {
+        searchTerm = searchTerm.trim();
+        if (searchTerm == '') {
+            return getAllPurchasedContactProducts();
+        }
+        
+        searchTerm = '%' + searchTerm + '%';
+
+        return [SELECT Id, Name,  Product_Name_Text__c, Contact__r.name, Order_Code__c 
+                FROM Contact_Products__c 
+                WHERE Status__c = 'Purchased'
+                AND Is_SaleProduct_Created__c = false
+                AND Order_Code__c LIKE :searchTerm 
+                ORDER BY CreatedDate DESC ];
+    }
+
+    @AuraEnabled(cacheable=true scope='global')
+    public static List<Contact_Products__c> getAllPurchasedContactProducts() {
+        return [
+            SELECT Id, Name, Product_Name_Text__c, Contact__r.name, Order_Code__c 
+            FROM Contact_Products__c 
+            WHERE Is_SaleProduct_Created__c = false
+            AND Status__c = 'Purchased'
+            ORDER BY CreatedDate DESC
+            LIMIT 10
+        ];
+    }
+
+    //검색한 주문코드로 판매된 제품을 등록하는 메서드 
+    @AuraEnabled
+    public static void addSalesProduct(String orderCode){
+        List<Sales_Product__c> salesProductsToInsert = new List<Sales_Product__c>(); 
+    
+        for (Contact_Products__c cp : [SELECT Id, Order_Code__c 
+                                        FROM Contact_Products__c
+                                        WHERE Order_Code__c = :orderCode]) {
+            Sales_Product__c sp = new Sales_Product__c();  
+            sp.Serial_Number__c = generateRandomString(16); 
+            sp.Contact_Products__c = cp.Id;
+            salesProductsToInsert.add(sp);
+        }
+        
+        if (!salesProductsToInsert.isEmpty()) {
+            insert salesProductsToInsert;
+        }
+    }
+
+     // 고유한 랜덤 문자열 생성하는 메서드 
+     public static String generateRandomString(Integer length) {
+        String allowedCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        String randomString = '';
+        while (randomString.length() < length) {
+            Integer randomInt = Math.mod(Math.abs(Crypto.getRandomInteger()), allowedCharacters.length());
+            randomString += allowedCharacters.substring(randomInt, randomInt + 1);
+        }
+        return randomString;
+    }
 }
